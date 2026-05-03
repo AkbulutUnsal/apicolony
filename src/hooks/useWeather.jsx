@@ -44,14 +44,22 @@ export function useWeather() {
       const pos = await new Promise((res, rej) =>
         navigator.geolocation.getCurrentPosition(res, rej, {
           timeout: 10000,
-          maximumAge: 0,
+          maximumAge: 60000,
           enableHighAccuracy: false
         })
       )
+      // Konum alındı, API çağrısı yap — hata olursa locationDenied değil error set et
       await fetchWeather(pos.coords.latitude, pos.coords.longitude)
-    } catch {
-      setLocationDenied(true)
-      setLoading(false)
+    } catch (err) {
+      // Sadece konum izni hatası ise locationDenied yap
+      if (err?.code === 1 || err?.PERMISSION_DENIED === 1 || err?.code === GeolocationPositionError?.PERMISSION_DENIED) {
+        setLocationDenied(true)
+        setLoading(false)
+      } else {
+        // Timeout veya başka konum hatası — API hatası değil
+        setLocationDenied(true)
+        setLoading(false)
+      }
     }
   }
 
@@ -140,7 +148,7 @@ export function useWeather() {
         updatedAt: new Date()
       })
     } catch (err) {
-      setError(err.message)
+      setError('Hava durumu verisi alınamadı')
     } finally {
       setLoading(false)
     }
