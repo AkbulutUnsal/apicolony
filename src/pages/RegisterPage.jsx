@@ -36,7 +36,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="text-left space-y-4">
           <div>
             <label className="field-label">Ad Soyad</label>
-            <input type="text" placeholder="Ünsal Demir" value={fullName} onChange={e => setFullName(e.target.value)} required />
+            <input type="text" placeholder="Ünsal Akbulut" value={fullName} onChange={e => setFullName(e.target.value)} required />
           </div>
           <div>
             <label className="field-label">E-posta</label>
