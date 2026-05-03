@@ -33,33 +33,38 @@ export function useWeather() {
   useEffect(() => { getLocationAndFetch() }, [])
 
   async function getLocationAndFetch() {
-    if (!navigator.geolocation) {
-      setError('Tarayıcınız konum desteklemiyor')
-      setLoading(false)
-      return
-    }
     setLoading(true)
     setLocationDenied(false)
-    try {
-      const pos = await new Promise((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, {
-          timeout: 10000,
-          maximumAge: 60000,
-          enableHighAccuracy: false
-        })
+
+    // GPS dene, 5 saniyede gelmezse IP konumuna geç
+    const gpsResult = await new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return }
+      const timer = setTimeout(() => resolve(null), 5000)
+      navigator.geolocation.getCurrentPosition(
+        pos => { clearTimeout(timer); resolve(pos) },
+        () => { clearTimeout(timer); resolve(null) },
+        { timeout: 5000, maximumAge: 60000, enableHighAccuracy: false }
       )
-      // Konum alındı, API çağrısı yap — hata olursa locationDenied değil error set et
-      await fetchWeather(pos.coords.latitude, pos.coords.longitude)
-    } catch (err) {
-      // Sadece konum izni hatası ise locationDenied yap
-      if (err?.code === 1 || err?.PERMISSION_DENIED === 1 || err?.code === GeolocationPositionError?.PERMISSION_DENIED) {
-        setLocationDenied(true)
-        setLoading(false)
+    })
+
+    if (gpsResult) {
+      await fetchWeather(gpsResult.coords.latitude, gpsResult.coords.longitude)
+      return
+    }
+
+    // GPS olmadı — IP tabanlı konuma geç
+    try {
+      const ipRes = await fetch('https://ipapi.co/json/')
+      const ipData = await ipRes.json()
+      if (ipData.latitude && ipData.longitude) {
+        await fetchWeather(ipData.latitude, ipData.longitude, ipData.city || ipData.region)
       } else {
-        // Timeout veya başka konum hatası — API hatası değil
-        setLocationDenied(true)
+        setError('Konum alınamadı')
         setLoading(false)
       }
+    } catch {
+      setError('Konum alınamadı')
+      setLoading(false)
     }
   }
 
