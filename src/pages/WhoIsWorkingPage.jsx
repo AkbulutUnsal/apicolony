@@ -120,7 +120,7 @@ export default function WhoIsWorkingPage() {
             <div className="w-7 h-7 border-2 border-gold border-t-transparent rounded-full animate-spin"/>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
             {/* Hesap sahibi kartı */}
             <button onClick={continueAsOwner}
               className="flex flex-col items-center gap-3 p-5 rounded-2xl transition-all hover:scale-105 cursor-pointer group"

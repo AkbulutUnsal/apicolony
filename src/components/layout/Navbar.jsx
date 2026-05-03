@@ -33,7 +33,7 @@ export default function Navbar({ onAddHive, addingHive }) {
 
   return (
     <nav className="bg-dark-200 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-      <div className="h-[60px] flex items-center justify-between px-6">
+      <div className="h-[60px] flex items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5 text-lg font-black cursor-pointer"
             onClick={() => navigate('/dashboard')}>
@@ -54,14 +54,22 @@ export default function Navbar({ onAddHive, addingHive }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {onAddHive && (
-            <button className="btn-gold text-sm" onClick={onAddHive} disabled={addingHive}>
+            <button className="btn-gold text-sm hidden sm:flex" onClick={onAddHive} disabled={addingHive}>
               {addingHive ? '⏳' : '+'} Yeni Kovan
             </button>
           )}
-          <button className="btn-ghost text-sm" onClick={() => navigate('/tara')}>
+          <button className="btn-ghost text-sm hidden sm:flex" onClick={() => navigate('/tara')}>
             📷 Tara
+          </button>
+          {/* Mobil hamburger */}
+          <button className="md:hidden btn-ghost px-2.5" onClick={() => setOpen(!open)}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <rect y="3" width="20" height="2" rx="1"/>
+              <rect y="9" width="20" height="2" rx="1"/>
+              <rect y="15" width="20" height="2" rx="1"/>
+            </svg>
           </button>
 
           {/* 🔔 Bildirim zili */}

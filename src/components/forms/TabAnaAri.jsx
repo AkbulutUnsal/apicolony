@@ -30,7 +30,7 @@ export function TabAnaAri({ hiveId }) {
       <div className="card">
         <h2 className="text-lg font-black mb-1">Ana Arı Bilgileri</h2>
         <p className="text-sm text-gray-400 mb-6">Kovanın ana arısına ait detaylı bilgiler.</p>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="field-label">Doğum Tarihi</label>
             <input type="date" value={queen.birth_date || ''} onChange={e => set('birth_date', e.target.value)} />
@@ -129,7 +129,7 @@ export function TabBallik({ hiveId }) {
 
         {adding ? (
           <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mb-3">
-            <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
               <div>
                 <label className="field-label">Tip</label>
                 <select value={newSuper.super_type} onChange={e => setNewSuper(p => ({ ...p, super_type: e.target.value }))}>
@@ -202,7 +202,7 @@ export function TabHastalik({ hiveId }) {
 
         {adding ? (
           <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mb-3">
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="field-label">Hastalık Adı</label>
                 <input value={form.disease_name} onChange={e => setForm(p => ({ ...p, disease_name: e.target.value }))} placeholder="Varroa, Nosema..." />
@@ -256,6 +256,12 @@ export function TabBakim({ hiveId }) {
     setRecords(prev => [data, ...prev])
     setAdding(null)
     toast.success('Bakım kaydı eklendi')
+
+    // Hives tablosunu güncelle — bakım yapıldı = healthy
+    await supabase.from('hives').update({
+      color_status: 'healthy',
+      updated_at: new Date().toISOString()
+    }).eq('id', hiveId)
   }
 
   if (loading) return <Loader />
@@ -288,7 +294,7 @@ export function TabBakim({ hiveId }) {
                   ))}
                   {adding === season ? (
                     <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mt-2">
-                      <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                         <div>
                           <label className="field-label">İnceleme Tarihi</label>
                           <input type="date" value={form.inspection_date} onChange={e => setForm(p => ({ ...p, inspection_date: e.target.value }))} />

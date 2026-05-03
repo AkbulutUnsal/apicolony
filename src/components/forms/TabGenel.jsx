@@ -37,7 +37,7 @@ export default function TabGenel({ hive, setHive }) {
         </div>
         <p className="text-sm text-gray-400 mb-6">Kovanın temel kimlik ve özellik bilgileri.</p>
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="field-label">Kovan No</label>
             <input value={hive.hive_no} onChange={e => set('hive_no', e.target.value)} />

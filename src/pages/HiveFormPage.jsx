@@ -30,16 +30,31 @@ export default function HiveFormPage() {
   async function saveHive() {
     setSaving(true)
 
-    // color_status otomatik hesapla
-    let color_status = 'normal'
+    // Son bakım kaydına bak
+    const { data: maintenance } = await supabase
+      .from('maintenance_records')
+      .select('inspection_date')
+      .eq('hive_id', id)
+      .order('inspection_date', { ascending: false })
+      .limit(1)
+
+    const lastInspection = maintenance?.[0]?.inspection_date
+
+    // color_status hesapla
+    let color_status = 'danger' // varsayılan: bakım yok = kırmızı
     if (hive.brood_status === 'Yok') {
       color_status = 'dormant'
-    } else if (hive.honey_stock_kg <= 3) {
-      color_status = 'danger'
-    } else if (hive.honey_stock_kg <= 6) {
-      color_status = 'warning'
+    } else if (!lastInspection) {
+      color_status = 'danger' // hiç bakım yok
     } else {
-      color_status = 'healthy'
+      const daysSince = Math.floor((Date.now() - new Date(lastInspection)) / 86400000)
+      if (hive.honey_stock_kg <= 3) {
+        color_status = 'danger'
+      } else if (daysSince >= 30 || hive.honey_stock_kg <= 6) {
+        color_status = 'warning'
+      } else {
+        color_status = 'healthy'
+      }
     }
 
     const { error } = await supabase
@@ -66,10 +81,10 @@ export default function HiveFormPage() {
 
   return (
     <div className="min-h-screen bg-dark-400 flex flex-col">
-      <div className="bg-dark-200 px-6 py-3 flex items-center justify-between flex-shrink-0"
+      <div className="bg-dark-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 flex-shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <button className="btn-ghost" onClick={() => navigate('/panel')}>← Panele Geri Dön</button>
-        <h1 className="text-gold font-black text-lg">{hive.hive_no} Kovan Bilgi Formu</h1>
+        <h1 className="text-gold font-black text-base">{hive.hive_no} Kovan Bilgi Formu</h1>
         <div className="flex gap-2.5">
           <button className="btn-gold" onClick={saveHive} disabled={saving}>
             💾 {saving ? 'Kaydediliyor...' : 'Kaydet'}

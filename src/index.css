@@ -77,3 +77,24 @@
     @apply text-xs font-bold text-gray-400 transition-colors;
   }
 }
+
+/* ── MOBİL DÜZELTMELER ── */
+@layer utilities {
+  /* Kovan formu header mobilde wrap */
+  @media (max-width: 640px) {
+    .hive-form-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .card { padding: 16px; }
+    .tab-btn { padding: 8px 12px; font-size: 12px; }
+  }
+
+  /* iOS safe area */
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+  
+  /* Mobilde yatay kaydırma engelle */
+  body { overflow-x: hidden; }
+  
+  /* Input mobilde font size 16px — iOS zoom engeli */
+  @media (max-width: 768px) {
+    input, select, textarea { font-size: 16px !important; }
+  }
+}

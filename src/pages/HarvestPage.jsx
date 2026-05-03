@@ -129,7 +129,7 @@ export default function HarvestPage() {
         {showForm && (
           <div className="card mb-6" style={{ border: '1px solid rgba(245,197,24,0.3)' }}>
             <h2 className="font-black text-base mb-4">Yeni Hasat Kaydı</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="field-label">Kovan (İsteğe Bağlı)</label>
                 <select value={form.hive_id} onChange={e => setForm(p => ({ ...p, hive_id: e.target.value }))}>

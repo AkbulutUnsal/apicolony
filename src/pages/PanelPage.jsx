@@ -47,7 +47,7 @@ export default function PanelPage() {
         honey_stock_kg: 10,
         brood_status: 'İyi',
         status: 'aktif',
-        color_status: 'normal'
+        color_status: 'danger'
       }).select().single()
       if (error) toast.error('Kovan eklenemedi')
       else { setHives(prev => [...prev, data]); toast.success(`${hiveNo} kovanı eklendi`) }
