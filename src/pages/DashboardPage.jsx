@@ -10,7 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const GOLD='#f5c518', GREEN='#27ae60', RED='#e74c3c', ORANGE='#e67e22', GRAY='#555'
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { activeWorker } = useWorker()
   const navigate = useNavigate()
   const [stats, setStats] = useState(null)
@@ -18,8 +18,13 @@ export default function DashboardPage() {
   const [urgentHives, setUrgentHives] = useState([])
   const [recentLogs, setRecentLogs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [adminStats, setAdminStats] = useState(null)
+
+  const isAdmin = profile?.role === 'admin'
+  const displayName = activeWorker?.full_name || profile?.full_name || user?.email?.split('@')[0] || 'Arıcı'
 
   useEffect(() => { if (user) fetchAll() }, [user])
+  useEffect(() => { if (isAdmin) fetchAdminStats() }, [isAdmin])
 
   async function fetchAll() {
     const [hivesRes, harvestRes, logsRes] = await Promise.all([
@@ -51,6 +56,30 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
+  async function fetchAdminStats() {
+    const [profilesRes, sessionsRes] = await Promise.all([
+      supabase.from('profiles').select('id, full_name, role, avatar_color'),
+      supabase.from('worker_sessions')
+        .select('worker_id, is_active, owner_id')
+        .eq('is_active', true)
+    ])
+    const profiles = profilesRes.data || []
+    const activeSessions = sessionsRes.data || []
+    // Son 5 dakikada aktif olanlar için worker_sessions'a bakıyoruz
+    const { data: recentSessions } = await supabase
+      .from('worker_sessions')
+      .select('owner_id, worker_id, is_active, created_at')
+      .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+    setAdminStats({
+      totalUsers: profiles.length,
+      adminCount: profiles.filter(p => p.role === 'admin').length,
+      ariciCount: profiles.filter(p => p.role === 'arici').length,
+      onlineSessions: activeSessions.length,
+      recentActive: recentSessions?.length || 0,
+      profiles
+    })
+  }
+
   if (loading) return (
     <div className="min-h-screen bg-dark-400 flex flex-col"><Navbar />
       <div className="flex-1 flex items-center justify-center">
@@ -72,7 +101,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-black">Merhaba, {activeWorker?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Arıcı'} 👋</h1>
+            <h1 className="text-2xl font-black">Merhaba, {displayName} 👋</h1>
             <p className="text-gray-400 text-sm mt-1">
               {new Date().toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
             </p>
@@ -83,6 +112,48 @@ export default function DashboardPage() {
         <div className="mb-6">
           <WeatherWidget compact={true} />
         </div>
+
+        {/* Admin Paneli */}
+        {isAdmin && adminStats && (
+          <div className="mb-6 p-4 rounded-2xl" style={{ background: '#1e1a00', border: '1px solid rgba(245,197,24,0.2)' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-gold text-lg">👑</span>
+              <h2 className="font-black text-gold text-base">Admin Paneli</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              {[
+                { icon: '👥', label: 'Toplam Üye', value: adminStats.totalUsers, color: '#f5c518' },
+                { icon: '🟢', label: 'Aktif Oturum', value: adminStats.onlineSessions, color: '#27ae60' },
+                { icon: '👑', label: 'Admin', value: adminStats.adminCount, color: '#e67e22' },
+                { icon: '🐝', label: 'Arıcı', value: adminStats.ariciCount, color: '#3498db' },
+              ].map(s => (
+                <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: '#2a2200' }}>
+                  <div className="text-xl mb-1">{s.icon}</div>
+                  <div className="text-xl font-black" style={{ color: s.color }}>{s.value}</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="text-xs text-gray-400 mb-2 font-bold">Kayıtlı Kullanıcılar</div>
+              <div className="space-y-1.5">
+                {adminStats.profiles.map(p => (
+                  <div key={p.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: '#2a2200' }}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black"
+                      style={{ background: p.avatar_color || '#f5c518', color: '#1a1200' }}>
+                      {p.full_name?.charAt(0) || '?'}
+                    </div>
+                    <div className="flex-1 text-sm font-bold">{p.full_name}</div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                      style={{ background: p.role === 'admin' ? '#e67e2222' : '#27ae6022', color: p.role === 'admin' ? '#e67e22' : '#27ae60' }}>
+                      {p.role === 'admin' ? '👑 Admin' : '🐝 Arıcı'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stat kartları */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

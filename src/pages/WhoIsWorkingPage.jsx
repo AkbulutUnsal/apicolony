@@ -21,6 +21,8 @@ export default function WhoIsWorkingPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [newWorker, setNewWorker] = useState({ full_name: '', role: 'yardimci', pin_or_pass: '', avatar_emoji: '👤', avatar_color: '#f5c518' })
 
+  const isAdmin = profile?.role === 'admin'
+
   useEffect(() => { if (user) fetchWorkers() }, [user])
 
   async function fetchWorkers() {
@@ -156,19 +158,21 @@ export default function WhoIsWorkingPage() {
               </button>
             ))}
 
-            {/* Yeni çalışan ekle */}
-            <button onClick={() => setShowAdd(true)}
-              className="flex flex-col items-center gap-3 p-5 rounded-2xl transition-all hover:scale-105 cursor-pointer"
-              style={{ background: '#1e1e1e', border: '2px dashed rgba(255,255,255,0.15)' }}>
-              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl text-gray-500"
-                style={{ background: '#2e2e2e' }}>+</div>
-              <div className="text-sm font-bold text-gray-500">Çalışan Ekle</div>
-            </button>
+            {/* Yeni çalışan ekle - sadece admin */}
+            {isAdmin && (
+              <button onClick={() => setShowAdd(true)}
+                className="flex flex-col items-center gap-3 p-5 rounded-2xl transition-all hover:scale-105 cursor-pointer"
+                style={{ background: '#1e1e1e', border: '2px dashed rgba(255,255,255,0.15)' }}>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl text-gray-500"
+                  style={{ background: '#2e2e2e' }}>+</div>
+                <div className="text-sm font-bold text-gray-500">Çalışan Ekle</div>
+              </button>
+            )}
           </div>
         )}
 
-        {/* Çalışan ekle formu */}
-        {showAdd && (
+        {/* Çalışan ekle formu - sadece admin */}
+        {isAdmin && showAdd && (
           <div className="card mb-6">
             <h3 className="font-black mb-4">Yeni Çalışan</h3>
             <div className="space-y-3">
@@ -220,13 +224,15 @@ export default function WhoIsWorkingPage() {
           </div>
         )}
 
-        {/* Alt butonlar */}
-        <div className="text-center">
-          <button onClick={() => navigate('/calisanlar')}
-            className="text-sm text-gray-400 hover:text-gold transition-colors">
-            ⚙️ Çalışanları Yönet
-          </button>
-        </div>
+        {/* Alt butonlar - sadece admin */}
+        {isAdmin && (
+          <div className="text-center">
+            <button onClick={() => navigate('/calisanlar')}
+              className="text-sm text-gray-400 hover:text-gold transition-colors">
+              ⚙️ Çalışanları Yönet
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
