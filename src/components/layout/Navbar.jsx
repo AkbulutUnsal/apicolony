@@ -107,6 +107,18 @@ export default function Navbar({ onAddHive, addingHive }) {
                     <div className="text-xs text-gold mt-0.5">{displayRole} · 🟢 Aktif</div>
                   </div>
                   <div className="py-1">
+                    {/* Mobilde Tara butonu */}
+                    {onAddHive && (
+                      <button onClick={() => { onAddHive(); setOpen(false) }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gold hover:bg-dark-50 flex items-center gap-2 transition-colors md:hidden">
+                        ➕ Yeni Kovan
+                      </button>
+                    )}
+                    <button onClick={() => { navigate('/tara'); setOpen(false) }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white flex items-center gap-2 transition-colors md:hidden">
+                      📷 Barkod Tara
+                    </button>
+                    <div className="md:hidden" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }}/>
                     {navLinks.map(link => (
                       <button key={link.path} onClick={() => { navigate(link.path); setOpen(false) }}
                         className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white transition-colors">

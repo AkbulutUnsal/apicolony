@@ -196,7 +196,11 @@ export default function DashboardPage() {
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none">
                       {pieData.map((e,i) => <Cell key={i} fill={e.color}/>)}
                     </Pie>
-                    <Tooltip contentStyle={{ background:'#2e2e2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, color:'#fff' }}/>
+                    <Tooltip
+                      contentStyle={{ background:'#2e2e2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, color:'#fff', fontSize:12 }}
+                      formatter={(value, name) => [value + ' kovan', name]}
+                      position={{ x: 10, y: 10 }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex flex-wrap gap-2 mt-2">
