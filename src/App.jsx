@@ -13,6 +13,7 @@ import QRScanPage from './pages/QRScanPage'
 import WorkersPage from './pages/WorkersPage'
 import AIAdvisorPage from './pages/AIAdvisorPage'
 import HarvestPage from './pages/HarvestPage'
+import ReportsPage from './pages/ReportsPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -43,6 +44,7 @@ export default function App() {
               <Route path="/kovan/:id" element={<PrivateRoute><HiveFormPage /></PrivateRoute>} />
               <Route path="/tara" element={<PrivateRoute><QRScanPage /></PrivateRoute>} />
               <Route path="/hasat" element={<PrivateRoute><HarvestPage /></PrivateRoute>} />
+            <Route path="/raporlar" element={<PrivateRoute><ReportsPage /></PrivateRoute>} />
             <Route path="/ai" element={<PrivateRoute><AIAdvisorPage /></PrivateRoute>} />
             <Route path="/calisanlar" element={<PrivateRoute><WorkersPage /></PrivateRoute>} />
               <Route path="*" element={<Navigate to="/kim-calisiyor" replace />} />

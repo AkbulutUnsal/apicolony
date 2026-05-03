@@ -21,6 +21,7 @@ export default function Navbar({ onAddHive, addingHive }) {
     { path: '/dashboard', label: '📊 Dashboard' },
     { path: '/panel', label: '🐝 Kovan Paneli' },
     { path: '/hasat', label: '🍯 Hasat' },
+    { path: '/raporlar', label: '📋 Raporlar' },
     { path: '/ai', label: '🤖 AI Danışman' },
     { path: '/calisanlar', label: '👥 Çalışanlar' },
   ]
