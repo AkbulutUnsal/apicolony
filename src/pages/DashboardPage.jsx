@@ -42,8 +42,7 @@ export default function DashboardPage() {
     const totalHoney = hives.reduce((s, h) => s + (h.honey_stock_kg || 0), 0)
     const totalHarvest = harvests.reduce((s, h) => s + (h.amount_kg || 0), 0)
     setStats({ total, critical, needsMaintenance, healthy, totalHoney, totalHarvest, dormant })
-    setUrgentHives(hives.filter(h => !h.last_inspection_date || h.honey_stock_kg <= 3 ||
-      (h.last_inspection_date && Math.floor((Date.now()-new Date(h.last_inspection_date))/86400000) >= 30)).slice(0, 5))
+    setUrgentHives(hives.filter(h => h.color_status === 'danger' || h.color_status === 'warning').slice(0, 5))
     const months = getLast6Months()
     setHarvestData(months.map(({key, label}) => ({
       label,
@@ -291,10 +290,11 @@ export default function DashboardPage() {
 }
 
 function getUrgentReason(h) {
-  if (!h.last_inspection_date) return { text:'Hiç incelenmedi', color:RED }
-  if (h.honey_stock_kg <= 3) return { text:`Bal stoğu kritik (${h.honey_stock_kg} kg)`, color:RED }
-  const days = Math.floor((Date.now()-new Date(h.last_inspection_date))/86400000)
-  return { text:`${days} gündür incelenmedi`, color:ORANGE }
+  if (h.color_status === 'dormant') return { text: 'Sönmüş koloni', color: '#555' }
+  if (h.color_status === 'danger') return { text: 'Hiç incelenmedi', color: RED }
+  if (h.color_status === 'warning') return { text: 'Bakım gerekiyor', color: ORANGE }
+  if (h.honey_stock_kg <= 3) return { text: `Bal stoğu kritik (${h.honey_stock_kg} kg)`, color: RED }
+  return { text: 'Kontrol gerekli', color: ORANGE }
 }
 function getLast6Months() {
   return Array.from({length:6},(_,i)=>{
