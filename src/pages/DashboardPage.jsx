@@ -59,23 +59,15 @@ export default function DashboardPage() {
   async function fetchAdminStats() {
     const [profilesRes, sessionsRes] = await Promise.all([
       supabase.from('profiles').select('id, full_name, role, avatar_color'),
-      supabase.from('worker_sessions')
-        .select('worker_id, is_active, owner_id')
-        .eq('is_active', true)
+      supabase.from('worker_sessions').select('id').eq('is_active', true)
     ])
     const profiles = profilesRes.data || []
     const activeSessions = sessionsRes.data || []
-    // Son 5 dakikada aktif olanlar için worker_sessions'a bakıyoruz
-    const { data: recentSessions } = await supabase
-      .from('worker_sessions')
-      .select('owner_id, worker_id, is_active, created_at')
-      .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
     setAdminStats({
       totalUsers: profiles.length,
       adminCount: profiles.filter(p => p.role === 'admin').length,
-      ariciCount: profiles.filter(p => p.role === 'arici').length,
+      ariciCount: profiles.filter(p => p.role !== 'admin').length,
       onlineSessions: activeSessions.length,
-      recentActive: recentSessions?.length || 0,
       profiles
     })
   }
@@ -108,17 +100,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Hava durumu - compact */}
-        <div className="mb-6">
-          <WeatherWidget compact={true} />
-        </div>
-
         {/* Admin Paneli */}
         {isAdmin && adminStats && (
-          <div className="mb-6 p-4 rounded-2xl" style={{ background: '#1e1a00', border: '1px solid rgba(245,197,24,0.2)' }}>
+          <div className="mb-6 p-4 rounded-2xl" style={{ background: '#1e1a00', border: '1px solid rgba(245,197,24,0.25)' }}>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-gold text-lg">👑</span>
-              <h2 className="font-black text-gold text-base">Admin Paneli</h2>
+              <span className="text-lg">👑</span>
+              <h2 className="font-black text-base" style={{ color: '#f5c518' }}>Admin Paneli</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
               {[
@@ -134,26 +121,29 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <div>
-              <div className="text-xs text-gray-400 mb-2 font-bold">Kayıtlı Kullanıcılar</div>
-              <div className="space-y-1.5">
-                {adminStats.profiles.map(p => (
-                  <div key={p.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: '#2a2200' }}>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black"
-                      style={{ background: p.avatar_color || '#f5c518', color: '#1a1200' }}>
-                      {p.full_name?.charAt(0) || '?'}
-                    </div>
-                    <div className="flex-1 text-sm font-bold">{p.full_name}</div>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                      style={{ background: p.role === 'admin' ? '#e67e2222' : '#27ae6022', color: p.role === 'admin' ? '#e67e22' : '#27ae60' }}>
-                      {p.role === 'admin' ? '👑 Admin' : '🐝 Arıcı'}
-                    </span>
+            <div className="text-xs text-gray-400 mb-2 font-bold">Kayıtlı Kullanıcılar</div>
+            <div className="space-y-1.5">
+              {adminStats.profiles.map(p => (
+                <div key={p.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: '#2a2200' }}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black"
+                    style={{ background: p.avatar_color || '#f5c518', color: '#1a1200' }}>
+                    {p.full_name?.charAt(0) || '?'}
                   </div>
-                ))}
-              </div>
+                  <div className="flex-1 text-sm font-bold">{p.full_name}</div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                    style={{ background: p.role === 'admin' ? '#e67e2222' : '#27ae6022', color: p.role === 'admin' ? '#e67e22' : '#27ae60' }}>
+                    {p.role === 'admin' ? '👑 Admin' : '🐝 Arıcı'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}
+
+        {/* Hava durumu - compact */}
+        <div className="mb-6">
+          <WeatherWidget compact={true} />
+        </div>
 
         {/* Stat kartları */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

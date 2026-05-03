@@ -26,7 +26,7 @@ const WMO_EMOJI = {
 }
 
 export default function WeatherWidget({ compact = false }) {
-  const { weather, loading, error } = useWeather()
+  const { weather, loading, error, locationDenied, retryLocation } = useWeather()
 
   if (loading) return (
     <div className="card animate-pulse" style={{ minHeight: compact ? 56 : 200 }}>
@@ -37,6 +37,21 @@ export default function WeatherWidget({ compact = false }) {
           <div className="h-2 bg-dark-50 rounded w-16"/>
         </div>
       </div>
+    </div>
+  )
+
+  if (locationDenied) return (
+    <div className="card flex items-center gap-3 py-3">
+      <span className="text-2xl">📍</span>
+      <div className="flex-1">
+        <div className="text-sm font-bold" style={{ color: '#e67e22' }}>Konum izni gerekli</div>
+        <div className="text-xs text-gray-400 mt-0.5">Doğru hava durumu için tarayıcıdan konum izni verin</div>
+      </div>
+      <button onClick={retryLocation}
+        className="text-xs font-bold px-3 py-1.5 rounded-lg"
+        style={{ background: 'rgba(245,197,24,0.15)', color: '#f5c518', border: '1px solid rgba(245,197,24,0.3)' }}>
+        İzin Ver →
+      </button>
     </div>
   )
 
