@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const displayName = activeWorker?.full_name || profile?.full_name || user?.email?.split('@')[0] || 'Arıcı'
 
   useEffect(() => { if (user) fetchAll() }, [user])
-  useEffect(() => { if (isAdmin) fetchAdminStats() }, [isAdmin])
+  useEffect(() => { if (profile?.role === 'admin') fetchAdminStats() }, [profile])
 
   async function fetchAll() {
     const [hivesRes, harvestRes, logsRes] = await Promise.all([
@@ -211,14 +211,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Hava durumu tam */}
-          <div className="lg:col-span-1">
-            <WeatherWidget />
-          </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Acil kovanlar */}
-          <div className="card lg:col-span-1">
+          <div className="card">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-black text-base flex items-center gap-2">
                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"/>Dikkat Gerektiren
@@ -250,7 +245,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Son aktiviteler */}
-          <div className="card lg:col-span-1">
+          <div className="card">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-black text-base">Son Aktiviteler</h2>
               <button onClick={() => navigate('/calisanlar')} className="text-xs text-gold hover:underline">Tümü →</button>
