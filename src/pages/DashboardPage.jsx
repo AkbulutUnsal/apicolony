@@ -35,13 +35,10 @@ export default function DashboardPage() {
     const hives = hivesRes.data || []
     const harvests = harvestRes.data || []
     const total = hives.length
-    const critical = hives.filter(h => !h.last_inspection_date || h.honey_stock_kg <= 3).length
-    const needsMaintenance = hives.filter(h => {
-      if (!h.last_inspection_date) return false
-      return Math.floor((Date.now() - new Date(h.last_inspection_date)) / 86400000) >= 30 && h.honey_stock_kg > 3
-    }).length
-    const healthy = total - critical - needsMaintenance
-    const dormant = hives.filter(h => h.brood_status === 'Yok').length
+    const critical = hives.filter(h => h.color_status === 'danger').length
+    const needsMaintenance = hives.filter(h => h.color_status === 'warning').length
+    const healthy = hives.filter(h => h.color_status === 'healthy').length
+    const dormant = hives.filter(h => h.color_status === 'dormant' || h.brood_status === 'Yok').length
     const totalHoney = hives.reduce((s, h) => s + (h.honey_stock_kg || 0), 0)
     const totalHarvest = harvests.reduce((s, h) => s + (h.amount_kg || 0), 0)
     setStats({ total, critical, needsMaintenance, healthy, totalHoney, totalHarvest, dormant })
