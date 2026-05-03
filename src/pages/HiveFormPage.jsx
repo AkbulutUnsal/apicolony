@@ -29,10 +29,23 @@ export default function HiveFormPage() {
 
   async function saveHive() {
     setSaving(true)
+
+    // color_status otomatik hesapla
+    let color_status = 'normal'
+    if (hive.brood_status === 'Yok') {
+      color_status = 'dormant'
+    } else if (hive.honey_stock_kg <= 3) {
+      color_status = 'danger'
+    } else if (hive.honey_stock_kg <= 6) {
+      color_status = 'warning'
+    } else {
+      color_status = 'healthy'
+    }
+
     const { error } = await supabase
-      .from('hives').update({ ...hive, updated_at: new Date().toISOString() }).eq('id', id)
+      .from('hives').update({ ...hive, color_status, updated_at: new Date().toISOString() }).eq('id', id)
     if (error) toast.error('Kaydedilemedi: ' + error.message)
-    else toast.success('Kovan kaydedildi!')
+    else { toast.success('Kovan kaydedildi!'); setHive(prev => ({ ...prev, color_status })) }
     setSaving(false)
   }
 

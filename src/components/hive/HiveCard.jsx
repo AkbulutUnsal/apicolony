@@ -82,13 +82,24 @@ export default function HiveCard({ hive, onClick }) {
 }
 
 function getStatus(hive) {
-  if (hive.color_status === 'dormant' || hive.brood_status === 'Yok') return 'dormant'
-  if (hive.color_status === 'danger') return 'critical'
+  // brood_status kontrolü
+  if (hive.brood_status === 'Yok') return 'dormant'
+
+  // color_status DB değerlerine göre
+  if (hive.color_status === 'dormant') return 'dormant'
+  if (hive.color_status === 'danger')  return 'critical'
   if (hive.color_status === 'warning') return 'warning'
   if (hive.color_status === 'healthy') return 'healthy'
-  if (!hive.last_inspection_date) return 'new'
+
+  // color_status 'normal' veya boş ise otomatik hesapla
+  if (!hive.last_inspection_date && !hive.inspection_date) return 'new'
   if (hive.honey_stock_kg <= 3) return 'critical'
-  const daysSince = Math.floor((Date.now() - new Date(hive.last_inspection_date)) / 86400000)
+
+  const inspDate = hive.last_inspection_date || hive.inspection_date
+  const daysSince = inspDate
+    ? Math.floor((Date.now() - new Date(inspDate)) / 86400000)
+    : 999
+
   if (daysSince >= 30 || hive.honey_stock_kg <= 6) return 'warning'
   return 'healthy'
 }
