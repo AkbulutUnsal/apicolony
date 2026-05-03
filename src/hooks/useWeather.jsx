@@ -28,19 +28,35 @@ export function useWeather() {
   const [weather, setWeather] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [locationDenied, setLocationDenied] = useState(false)
 
   useEffect(() => { getLocationAndFetch() }, [])
 
   async function getLocationAndFetch() {
+    if (!navigator.geolocation) {
+      setError('Tarayıcınız konum desteklemiyor')
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setLocationDenied(false)
     try {
       const pos = await new Promise((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 6000 })
+        navigator.geolocation.getCurrentPosition(res, rej, {
+          timeout: 10000,
+          maximumAge: 0,
+          enableHighAccuracy: false
+        })
       )
       await fetchWeather(pos.coords.latitude, pos.coords.longitude)
     } catch {
-      // Konum alınamazsa Kayseri (senin şehrin)
-      await fetchWeather(38.7225, 35.4875, 'Kayseri')
+      setLocationDenied(true)
+      setLoading(false)
     }
+  }
+
+  function retryLocation() {
+    getLocationAndFetch()
   }
 
   async function fetchWeather(lat, lon, fallbackCity = null) {
@@ -130,5 +146,5 @@ export function useWeather() {
     }
   }
 
-  return { weather, loading, error }
+  return { weather, loading, error, locationDenied, retryLocation }
 }

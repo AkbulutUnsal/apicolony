@@ -72,7 +72,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-black">Merhaba, {activeWorker?.full_name || 'Ünsal'} 👋</h1>
+            <h1 className="text-2xl font-black">Merhaba, {activeWorker?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Arıcı'} 👋</h1>
             <p className="text-gray-400 text-sm mt-1">
               {new Date().toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
             </p>
