@@ -25,11 +25,22 @@ export default function ReportsPage() {
   useEffect(() => { if (user) fetchAll() }, [user])
 
   async function fetchAll() {
+    // Önce kullanıcının kovan id'lerini al (güvenlik için user_id filtresi)
+    const { data: userHives } = await supabase
+      .from('hives').select('id').eq('user_id', user.id).eq('status', 'aktif')
+    const hiveIds = (userHives || []).map(h => h.id)
+
     const [hivRes, harRes, mainRes, disRes] = await Promise.all([
       supabase.from('hives').select('*').eq('user_id', user.id).eq('status', 'aktif'),
       supabase.from('honey_harvests').select('*').eq('user_id', user.id).order('harvest_date'),
-      supabase.from('maintenance_records').select('*, hives(hive_no)').eq('hive_id', supabase.rpc ? undefined : undefined).order('inspection_date', { ascending: false }),
-      supabase.from('disease_records').select('*, hives(hive_no)').order('detected_date', { ascending: false })
+      hiveIds.length > 0
+        ? supabase.from('maintenance_records').select('*, hives(hive_no)')
+            .in('hive_id', hiveIds).order('inspection_date', { ascending: false })
+        : Promise.resolve({ data: [] }),
+      hiveIds.length > 0
+        ? supabase.from('disease_records').select('*, hives(hive_no)')
+            .in('hive_id', hiveIds).order('detected_date', { ascending: false })
+        : Promise.resolve({ data: [] })
     ])
     setHives(hivRes.data || [])
     setHarvests(harRes.data || [])

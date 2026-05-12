@@ -19,10 +19,13 @@ export default function Navbar({ onAddHive, addingHive }) {
 
   const navLinks = [
     { path: '/dashboard', label: '📊 Dashboard' },
-    { path: '/panel', label: '🐝 Kovan Paneli' },
-    { path: '/hasat', label: '🍯 Hasat' },
+    { path: '/panel', label: '🐝 Kovanlar' },
+    { path: '/arliklar', label: '🌿 Arılıklar' },
+    { path: '/besleme', label: '🍯 Besleme' },
+    { path: '/tedavi', label: '💊 Tedavi' },
+    { path: '/hasat', label: '🫙 Hasat' },
     { path: '/raporlar', label: '📋 Raporlar' },
-    { path: '/ai', label: '🤖 AI Danışman' },
+    { path: '/ai', label: '🤖 AI' },
     { path: '/calisanlar', label: '👥 Çalışanlar' },
   ]
 

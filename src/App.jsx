@@ -14,6 +14,9 @@ import WorkersPage from './pages/WorkersPage'
 import AIAdvisorPage from './pages/AIAdvisorPage'
 import HarvestPage from './pages/HarvestPage'
 import ReportsPage from './pages/ReportsPage'
+import ApiariesPage from './pages/ApiariesPage'
+import FeedingPage from './pages/FeedingPage'
+import TreatmentPage from './pages/TreatmentPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -45,6 +48,9 @@ export default function App() {
               <Route path="/tara" element={<PrivateRoute><QRScanPage /></PrivateRoute>} />
               <Route path="/hasat" element={<PrivateRoute><HarvestPage /></PrivateRoute>} />
             <Route path="/raporlar" element={<PrivateRoute><ReportsPage /></PrivateRoute>} />
+            <Route path="/arliklar" element={<PrivateRoute><ApiariesPage /></PrivateRoute>} />
+            <Route path="/besleme" element={<PrivateRoute><FeedingPage /></PrivateRoute>} />
+            <Route path="/tedavi" element={<PrivateRoute><TreatmentPage /></PrivateRoute>} />
             <Route path="/ai" element={<PrivateRoute><AIAdvisorPage /></PrivateRoute>} />
             <Route path="/calisanlar" element={<PrivateRoute><WorkersPage /></PrivateRoute>} />
               <Route path="*" element={<Navigate to="/kim-calisiyor" replace />} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
@@ -9,7 +9,10 @@ import toast from 'react-hot-toast'
 export default function PanelPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [hives, setHives] = useState([])
+  const [apiaries, setApiaries] = useState([])
+  const [filterApiary, setFilterApiary] = useState(searchParams.get('arılik') || 'all')
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
 
@@ -17,12 +20,13 @@ export default function PanelPage() {
 
   async function fetchHives() {
     if (!user) return
-    const { data, error } = await supabase
-      .from('hives').select('*')
-      .eq('user_id', user.id).eq('status', 'aktif')
-      .order('created_at')
-    if (error) toast.error('Kovanlar yüklenemedi')
-    else setHives(data || [])
+    const [hivRes, apRes] = await Promise.all([
+      supabase.from('hives').select('*').eq('user_id', user.id).eq('status', 'aktif').order('created_at'),
+      supabase.from('apiaries').select('id, name').eq('user_id', user.id).order('name')
+    ])
+    if (hivRes.error) toast.error('Kovanlar yüklenemedi')
+    else setHives(hivRes.data || [])
+    setApiaries(apRes.data || [])
     setLoading(false)
   }
 
@@ -61,25 +65,53 @@ export default function PanelPage() {
       <Navbar onAddHive={addHive} addingHive={adding} />
       <main className="flex-1 p-6">
         <h1 className="text-center text-xl font-black mb-6 tracking-wide">Kovan Paneli</h1>
+        {/* Arılık filtresi */}
+        {apiaries.length > 0 && (
+          <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+            <FilterChip label="Tümü" active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
+            {apiaries.map(a => (
+              <FilterChip key={a.id} label={a.name} active={filterApiary === a.id} onClick={() => setFilterApiary(a.id)} />
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : hives.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-            <p className="text-lg mb-4">Henüz kovan yok.</p>
-            <button className="btn-gold" onClick={addHive} disabled={adding}>
-              + İlk Kovanı Ekle
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))' }}>
-            {hives.map(hive => (
-              <HiveCard key={hive.id} hive={hive} onClick={() => navigate(`/kovan/${hive.id}`)} />
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          const filtered = filterApiary === 'all' ? hives : hives.filter(h => h.apiary_id === filterApiary)
+          return filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+              <p className="text-lg mb-4">{hives.length === 0 ? 'Henüz kovan yok.' : 'Bu arılıkta kovan yok.'}</p>
+              {hives.length === 0 && (
+                <button className="btn-gold" onClick={addHive} disabled={adding}>
+                  + İlk Kovanı Ekle
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))' }}>
+              {filtered.map(hive => (
+                <HiveCard key={hive.id} hive={hive} onClick={() => navigate(`/kovan/${hive.id}`)} />
+              ))}
+            </div>
+          )
+        })()}
       </main>
     </div>
+  )
+}
+
+function FilterChip({ label, active, onClick }) {
+  return (
+    <button onClick={onClick}
+      className="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-colors flex-shrink-0"
+      style={active
+        ? { background: 'rgba(245,197,24,0.2)', color: '#f5c518', border: '1px solid rgba(245,197,24,0.4)' }
+        : { background: 'rgba(255,255,255,0.06)', color: '#aaa', border: '1px solid rgba(255,255,255,0.1)' }
+      }>
+      {label}
+    </button>
   )
 }
