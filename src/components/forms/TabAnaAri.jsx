@@ -294,26 +294,30 @@ export function TabBakim({ hiveId }) {
                   ))}
                   {adding === season ? (
                     <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mt-2">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <label className="field-label">İnceleme Tarihi</label>
-                          <input type="date" value={form.inspection_date} onChange={e => setForm(p => ({ ...p, inspection_date: e.target.value }))} />
+                      <div className="flex flex-col gap-3 mb-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="field-label">İnceleme Tarihi</label>
+                            <input type="date" value={form.inspection_date} onChange={e => setForm(p => ({ ...p, inspection_date: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="field-label">Koloni Gücü</label>
+                            <select value={form.colony_strength} onChange={e => setForm(p => ({ ...p, colony_strength: e.target.value }))}>
+                              <option>Güçlü</option><option>Orta</option><option>Zayıf</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="field-label">Bal Çerçevesi</label>
+                            <input type="number" value={form.honey_frames} onChange={e => setForm(p => ({ ...p, honey_frames: parseInt(e.target.value) }))} />
+                          </div>
+                          <div>
+                            <label className="field-label">Kuluçka Çerçevesi</label>
+                            <input type="number" value={form.brood_frames} onChange={e => setForm(p => ({ ...p, brood_frames: parseInt(e.target.value) }))} />
+                          </div>
                         </div>
                         <div>
-                          <label className="field-label">Koloni Gücü</label>
-                          <select value={form.colony_strength} onChange={e => setForm(p => ({ ...p, colony_strength: e.target.value }))}>
-                            <option>Güçlü</option><option>Orta</option><option>Zayıf</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="field-label">Bal Çerçevesi</label>
-                          <input type="number" value={form.honey_frames} onChange={e => setForm(p => ({ ...p, honey_frames: parseInt(e.target.value) }))} />
-                        </div>
-                        <div>
-                          <label className="field-label">Kuluçka Çerçevesi</label>
-                          <input type="number" value={form.brood_frames} onChange={e => setForm(p => ({ ...p, brood_frames: parseInt(e.target.value) }))} />
-                        </div>
-                        <div className="col-span-2">
                           <label className="field-label">Notlar</label>
                           <textarea rows={2} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="resize-none" />
                         </div>

@@ -1,9 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import VoiceRecorder from '../voice/VoiceRecorder'
+import { Html5Qrcode } from 'html5-qrcode'
 
 export default function TabGenel({ hive, setHive }) {
   const [showVoice, setShowVoice] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
+  const scannerRef = useRef(null)
+  const scannerInstanceRef = useRef(null)
   const set = (field, val) => setHive(prev => ({ ...prev, [field]: val }))
+
+  useEffect(() => {
+    if (showScanner) {
+      setTimeout(() => {
+        const html5QrCode = new Html5Qrcode('barcode-reader')
+        scannerInstanceRef.current = html5QrCode
+        html5QrCode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 100 } },
+          (decodedText) => {
+            set('barcode', decodedText)
+            stopScanner()
+          },
+          () => {}
+        ).catch(err => {
+          console.error('Kamera başlatılamadı:', err)
+        })
+      }, 300)
+    }
+    return () => {
+      if (scannerInstanceRef.current) {
+        scannerInstanceRef.current.stop().catch(() => {})
+        scannerInstanceRef.current = null
+      }
+    }
+  }, [showScanner])
+
+  function stopScanner() {
+    if (scannerInstanceRef.current) {
+      scannerInstanceRef.current.stop().then(() => {
+        scannerInstanceRef.current = null
+        setShowScanner(false)
+      }).catch(() => {
+        scannerInstanceRef.current = null
+        setShowScanner(false)
+      })
+    } else {
+      setShowScanner(false)
+    }
+  }
 
   function handleVoiceFields(fields) {
     setHive(prev => ({
@@ -24,6 +68,21 @@ export default function TabGenel({ hive, setHive }) {
           onFieldsDetected={handleVoiceFields}
           onClose={() => setShowVoice(false)}
         />
+      )}
+
+      {/* Barkod Tarayıcı Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-dark-200 rounded-2xl p-5 w-full max-w-sm" style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-base">Barkod Tara</h3>
+              <button onClick={stopScanner} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
+            </div>
+            <div id="barcode-reader" className="w-full rounded-xl overflow-hidden" style={{ minHeight: 220 }} />
+            <p className="text-xs text-gray-400 text-center mt-3">Barkodu kamera çerçevesine hizalayın</p>
+            <button onClick={stopScanner} className="btn-ghost w-full mt-3">İptal</button>
+          </div>
+        </div>
       )}
 
       <div className="card">
@@ -47,7 +106,7 @@ export default function TabGenel({ hive, setHive }) {
             <div className="flex gap-1.5">
               <input value={hive.barcode || ''} onChange={e => set('barcode', e.target.value)}
                 placeholder="TR-34-1001" className="flex-1" style={{ width: 'auto' }} />
-              <button className="bg-dark-50 border border-white/10 rounded-lg px-2.5 text-lg flex-shrink-0">📷</button>
+              <button className="bg-dark-50 border border-white/10 rounded-lg px-2.5 text-lg flex-shrink-0" onClick={() => setShowScanner(true)} title="Barkod Tara">📷</button>
             </div>
           </div>
           <div>
