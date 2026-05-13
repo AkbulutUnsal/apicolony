@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [recentLogs, setRecentLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [adminStats, setAdminStats] = useState(null)
+  const [quickFinance, setQuickFinance] = useState({ income: 0, expense: 0, feedCount: 0 })
 
   const isAdmin = profile?.role === 'admin'
   const displayName = activeWorker?.full_name || profile?.full_name || user?.email?.split('@')[0] || 'Arıcı'
@@ -49,6 +50,19 @@ export default function DashboardPage() {
       kg: harvests.filter(h => h.harvest_date?.startsWith(key)).reduce((s,h) => s+(h.amount_kg||0), 0)
     })))
     setRecentLogs(logsRes.data || [])
+
+    // Finans özet (bu ay)
+    const thisMonth = new Date().toISOString().slice(0, 7)
+    const [costRes, incRes, feedRes] = await Promise.all([
+      supabase.from('cost_records').select('amount').eq('user_id', user.id).like('record_date', `${thisMonth}%`),
+      supabase.from('income_records').select('amount').eq('user_id', user.id).like('record_date', `${thisMonth}%`),
+      supabase.from('feeding_records').select('id').eq('user_id', user.id).like('feed_date', `${thisMonth}%`),
+    ])
+    setQuickFinance({
+      expense: (costRes.data||[]).reduce((s,c)=>s+(c.amount||0),0),
+      income: (incRes.data||[]).reduce((s,i)=>s+(i.amount||0),0),
+      feedCount: (feedRes.data||[]).length
+    })
     setLoading(false)
   }
 

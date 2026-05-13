@@ -20,6 +20,10 @@ export default function ReportsPage() {
   const [harvests, setHarvests] = useState([])
   const [maintenance, setMaintenance] = useState([])
   const [diseases, setDiseases] = useState([])
+  const [feedings, setFeedings] = useState([])
+  const [treatments, setTreatments] = useState([])
+  const [costs, setCosts] = useState([])
+  const [incomes, setIncomes] = useState([])
   const [activeTab, setActiveTab] = useState('ozet')
 
   useEffect(() => { if (user) fetchAll() }, [user])
@@ -46,6 +50,18 @@ export default function ReportsPage() {
     setHarvests(harRes.data || [])
     setMaintenance(mainRes.data || [])
     setDiseases(disRes.data || [])
+
+    // Besleme, tedavi, finans
+    const [feedRes, treatRes, costRes, incRes] = await Promise.all([
+      supabase.from('feeding_records').select('*').eq('user_id', user.id).order('feed_date', { ascending: false }),
+      supabase.from('treatment_records').select('*, hives(hive_no)').eq('user_id', user.id).order('treatment_date', { ascending: false }),
+      supabase.from('cost_records').select('*').eq('user_id', user.id).order('record_date', { ascending: false }),
+      supabase.from('income_records').select('*').eq('user_id', user.id).order('record_date', { ascending: false }),
+    ])
+    setFeedings(feedRes.data || [])
+    setTreatments(treatRes.data || [])
+    setCosts(costRes.data || [])
+    setIncomes(incRes.data || [])
     setLoading(false)
   }
 
@@ -110,10 +126,13 @@ export default function ReportsPage() {
   )
 
   const TABS = [
-    { id: 'ozet', label: '📊 Özet' },
-    { id: 'hasat', label: '🍯 Hasat' },
-    { id: 'saglik', label: '🐝 Sağlık' },
-    { id: 'bakim', label: '🔧 Bakım' },
+    { id: 'ozet',    label: '📊 Özet' },
+    { id: 'hasat',   label: '🍯 Hasat' },
+    { id: 'saglik',  label: '🐝 Sağlık' },
+    { id: 'bakim',   label: '🔧 Bakım' },
+    { id: 'besleme', label: '🫙 Besleme' },
+    { id: 'tedavi',  label: '💊 Tedavi' },
+    { id: 'finans',  label: '💰 Finans' },
   ]
 
   return (
@@ -487,6 +506,201 @@ export default function ReportsPage() {
             </div>
           </div>
         )}
+        {/* ── BESLEME ── */}
+        {activeTab === 'besleme' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { label: 'Toplam Besleme', value: feedings.length, color: GOLD },
+                { label: 'Bu Ay', value: feedings.filter(f => f.feed_date?.startsWith(new Date().toISOString().slice(0,7))).length, color: GREEN },
+                { label: 'Top. Maliyet', value: `${feedings.reduce((s,f)=>s+(f.cost||0),0).toLocaleString('tr-TR')} ₺`, color: ORANGE },
+              ].map(s => (
+                <div key={s.label} className="card text-center">
+                  <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
+                  <div className="text-xs text-gray-400">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="card">
+              <h2 className="font-black text-base mb-4">Besleme Türü Dağılımı</h2>
+              {feedings.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">Besleme kaydı yok</div>
+              ) : (
+                <div className="space-y-2.5">
+                  {Object.entries(feedings.reduce((acc,f)=>{ acc[f.feed_type]=(acc[f.feed_type]||0)+1; return acc },{}))
+                    .sort((a,b)=>b[1]-a[1]).map(([type, count]) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="text-xs text-gray-400 w-32 flex-shrink-0">{type}</div>
+                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
+                        <div className="h-full rounded-full" style={{ width:`${(count/feedings.length)*100}%`, background: GOLD }} />
+                      </div>
+                      <div className="text-xs font-bold w-12 text-right">{count} kez</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="card">
+              <h2 className="font-black text-base mb-4">Son Besleme Kayıtları</h2>
+              {feedings.length === 0 ? (
+                <div className="text-center py-6 text-gray-500 text-sm">Kayıt yok</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr style={{ borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tarih</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tür</th>
+                      <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Miktar</th>
+                      <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Maliyet</th>
+                    </tr></thead>
+                    <tbody>
+                      {feedings.slice(0,20).map((f,i) => (
+                        <tr key={i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                          <td className="py-2 px-3 text-gray-400 text-xs">{f.feed_date ? new Date(f.feed_date+'T00:00:00').toLocaleDateString('tr-TR') : '-'}</td>
+                          <td className="py-2 px-3 font-semibold">{f.feed_type}</td>
+                          <td className="py-2 px-3 text-right">{f.amount} {f.unit}</td>
+                          <td className="py-2 px-3 text-right text-gold">{f.cost ? `${f.cost} ₺` : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── TEDAVİ ── */}
+        {activeTab === 'tedavi' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { label: 'Toplam Tedavi', value: treatments.length, color: RED },
+                { label: 'Bu Ay', value: treatments.filter(t => t.treatment_date?.startsWith(new Date().toISOString().slice(0,7))).length, color: ORANGE },
+                { label: 'Farklı Hastalık', value: new Set(treatments.map(t=>t.disease_type)).size, color: GOLD },
+              ].map(s => (
+                <div key={s.label} className="card text-center">
+                  <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
+                  <div className="text-xs text-gray-400">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="card">
+              <h2 className="font-black text-base mb-4">Hastalık / Zararlı Dağılımı</h2>
+              {treatments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm flex flex-col items-center gap-2"><span className="text-2xl">✅</span>Tedavi kaydı yok</div>
+              ) : (
+                <div className="space-y-2.5">
+                  {Object.entries(treatments.reduce((acc,t)=>{ acc[t.disease_type]=(acc[t.disease_type]||0)+1; return acc },{}))
+                    .sort((a,b)=>b[1]-a[1]).map(([type, count]) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="text-xs text-gray-400 w-36 flex-shrink-0">{type}</div>
+                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
+                        <div className="h-full rounded-full" style={{ width:`${(count/treatments.length)*100}%`, background: RED }} />
+                      </div>
+                      <div className="text-xs font-bold w-12 text-right">{count} kez</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="card">
+              <h2 className="font-black text-base mb-4">Son Tedavi Kayıtları</h2>
+              {treatments.length === 0 ? (
+                <div className="text-center py-6 text-gray-500 text-sm">Kayıt yok</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr style={{ borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tarih</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Kovan</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Hastalık</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Ürün</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Şiddet</th>
+                    </tr></thead>
+                    <tbody>
+                      {treatments.slice(0,20).map((t,i) => (
+                        <tr key={i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                          <td className="py-2 px-3 text-gray-400 text-xs">{t.treatment_date ? new Date(t.treatment_date+'T00:00:00').toLocaleDateString('tr-TR') : '-'}</td>
+                          <td className="py-2 px-3 font-bold text-gold">{t.hives?.hive_no || '-'}</td>
+                          <td className="py-2 px-3">{t.disease_type}</td>
+                          <td className="py-2 px-3 text-gray-400">{t.product_name || '-'}</td>
+                          <td className="py-2 px-3">
+                            <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{
+                              background: t.severity==='Ağır'?'#e74c3c22':t.severity==='Orta'?'#e67e2222':'#27ae6022',
+                              color: t.severity==='Ağır'?RED:t.severity==='Orta'?ORANGE:GREEN
+                            }}>{t.severity||'-'}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── FİNANS ── */}
+        {activeTab === 'finans' && (() => {
+          const totalExp = costs.reduce((s,c)=>s+(c.amount||0),0)
+          const totalInc = incomes.reduce((s,i)=>s+(i.amount||0),0)
+          const profit = totalInc - totalExp
+          const kgSold = incomes.filter(i=>i.category==='Bal Satışı'&&i.quantity_kg).reduce((s,i)=>s+(i.quantity_kg||0),0)
+          const kgPrice = kgSold>0 ? incomes.filter(i=>i.category==='Bal Satışı').reduce((s,i)=>s+(i.amount||0),0)/kgSold : 0
+          return (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Toplam Gelir', value: `${totalInc.toLocaleString('tr-TR')} ₺`, color: GREEN },
+                  { label: 'Toplam Gider', value: `${totalExp.toLocaleString('tr-TR')} ₺`, color: RED },
+                  { label: 'Kâr / Zarar', value: `${profit>=0?'+':''}${profit.toLocaleString('tr-TR')} ₺`, color: profit>=0?GREEN:RED },
+                  { label: 'Ort. Kg Fiyatı', value: kgPrice>0?`${kgPrice.toFixed(0)} ₺/kg`:'—', color: GOLD },
+                ].map(s => (
+                  <div key={s.label} className="card text-center">
+                    <div className="text-xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
+                    <div className="text-xs text-gray-400">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="card">
+                  <h2 className="font-black text-sm mb-3">Son Giderler</h2>
+                  {costs.length===0 ? <p className="text-sm text-gray-500 text-center py-4">Kayıt yok</p> : (
+                    <div className="space-y-1.5">
+                      {costs.slice(0,8).map((c,i)=>(
+                        <div key={i} className="flex justify-between items-center text-sm py-1.5" style={{ borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                          <div>
+                            <span className="font-semibold">{c.category}</span>
+                            {c.description && <span className="text-gray-500 text-xs ml-2">{c.description}</span>}
+                          </div>
+                          <span className="font-black text-red-400 flex-shrink-0 ml-3">-{c.amount?.toLocaleString('tr-TR')} ₺</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="card">
+                  <h2 className="font-black text-sm mb-3">Son Gelirler</h2>
+                  {incomes.length===0 ? <p className="text-sm text-gray-500 text-center py-4">Kayıt yok</p> : (
+                    <div className="space-y-1.5">
+                      {incomes.slice(0,8).map((c,i)=>(
+                        <div key={i} className="flex justify-between items-center text-sm py-1.5" style={{ borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                          <div>
+                            <span className="font-semibold">{c.category}</span>
+                            {c.description && <span className="text-gray-500 text-xs ml-2">{c.description}</span>}
+                          </div>
+                          <span className="font-black text-green-400 flex-shrink-0 ml-3">+{c.amount?.toLocaleString('tr-TR')} ₺</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
       </main>
 
       {/* Print CSS */}
