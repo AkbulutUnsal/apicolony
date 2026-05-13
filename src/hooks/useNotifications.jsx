@@ -15,9 +15,19 @@ export function NotificationProvider({ children }) {
   async function generateNotifications() {
     const { data: hives } = await supabase
       .from('hives').select('*').eq('user_id', user.id).eq('status', 'aktif')
-    const { data: queens } = await supabase
-      .from('queens').select('*, hives(hive_no)').eq('is_current', true)
-      .in('hive_id', (hives || []).map(h => h.id))
+    const hiveIds = (hives || []).map(h => h.id)
+    const [queensRes, treatmentRes] = await Promise.all([
+      supabase.from('queens').select('*, hives(hive_no)').eq('is_current', true)
+        .in('hive_id', hiveIds.length > 0 ? hiveIds : ['none']),
+      hiveIds.length > 0
+        ? supabase.from('treatment_records').select('*, hives(hive_no)')
+            .in('hive_id', hiveIds).not('repeat_date', 'is', null)
+            .gte('repeat_date', new Date().toISOString().slice(0, 10))
+            .lte('repeat_date', new Date(Date.now() + 10 * 86400000).toISOString().slice(0, 10))
+        : Promise.resolve({ data: [] })
+    ])
+    const queens = queensRes.data || []
+    const upcomingTreatments = treatmentRes.data || []
 
     const notifs = []
     const now = Date.now()
@@ -81,6 +91,21 @@ export function NotificationProvider({ children }) {
           created_at: new Date().toISOString(),
         })
       }
+    }
+
+    // Yaklaşan tekrar tedaviler
+    for (const t of upcomingTreatments) {
+      const daysUntil = Math.ceil((new Date(t.repeat_date) - Date.now()) / 86400000)
+      notifs.push({
+        id: `treatment-repeat-${t.id}`,
+        type: daysUntil <= 2 ? 'critical' : 'warning',
+        icon: '💊',
+        title: `${t.hives?.hive_no || 'Kovan'} tekrar tedavi`,
+        desc: `${t.disease_type} — ${t.product_name || 'tedavi'} ${daysUntil <= 0 ? 'bugün!' : `${daysUntil} gün içinde`}`,
+        hive_id: t.hive_id,
+        hive_no: t.hives?.hive_no,
+        created_at: new Date().toISOString(),
+      })
     }
 
     // Ana arı değişim zamanı (1 yıl+)

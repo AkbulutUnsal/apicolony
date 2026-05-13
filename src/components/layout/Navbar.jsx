@@ -24,6 +24,8 @@ export default function Navbar({ onAddHive, addingHive }) {
     { path: '/besleme', label: '🍯 Besleme' },
     { path: '/tedavi', label: '💊 Tedavi' },
     { path: '/hasat', label: '🫙 Hasat' },
+    { path: '/partiler', label: '🍯 Partiler' },
+    { path: '/finans', label: '💰 Finans' },
     { path: '/raporlar', label: '📋 Raporlar' },
     { path: '/ai', label: '🤖 AI' },
     { path: '/calisanlar', label: '👥 Çalışanlar' },

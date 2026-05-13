@@ -17,6 +17,9 @@ import ReportsPage from './pages/ReportsPage'
 import ApiariesPage from './pages/ApiariesPage'
 import FeedingPage from './pages/FeedingPage'
 import TreatmentPage from './pages/TreatmentPage'
+import BatchPage from './pages/BatchPage'
+import PublicBatchPage from './pages/PublicBatchPage'
+import FinancePage from './pages/FinancePage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -41,6 +44,7 @@ export default function App() {
             <Routes>
               <Route path="/giris" element={<LoginPage />} />
               <Route path="/kayit" element={<RegisterPage />} />
+              <Route path="/parti/:batchNo" element={<PublicBatchPage />} />
               <Route path="/kim-calisiyor" element={<PrivateRoute><WhoIsWorkingPage /></PrivateRoute>} />
               <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
               <Route path="/panel" element={<PrivateRoute><PanelPage /></PrivateRoute>} />
@@ -51,6 +55,8 @@ export default function App() {
             <Route path="/arliklar" element={<PrivateRoute><ApiariesPage /></PrivateRoute>} />
             <Route path="/besleme" element={<PrivateRoute><FeedingPage /></PrivateRoute>} />
             <Route path="/tedavi" element={<PrivateRoute><TreatmentPage /></PrivateRoute>} />
+            <Route path="/partiler" element={<PrivateRoute><BatchPage /></PrivateRoute>} />
+            <Route path="/finans" element={<PrivateRoute><FinancePage /></PrivateRoute>} />
             <Route path="/ai" element={<PrivateRoute><AIAdvisorPage /></PrivateRoute>} />
             <Route path="/calisanlar" element={<PrivateRoute><WorkersPage /></PrivateRoute>} />
               <Route path="*" element={<Navigate to="/kim-calisiyor" replace />} />
