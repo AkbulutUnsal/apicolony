@@ -149,14 +149,13 @@ export default function Navbar({ onAddHive, addingHive }) {
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white flex items-center gap-2 transition-colors md:hidden">
                       📷 Barkod Tara
                     </button>
-                    <div className="md:hidden" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
                     {navLinks.map(link => (
                       <button key={link.path} onClick={() => { navigate(link.path); setOpen(false) }}
                         className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white transition-colors md:hidden">
                         {link.label}
                       </button>
                     ))}
-                    <div className="md:hidden" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0' }} />
                     <button onClick={() => { navigate('/kim-calisiyor'); setOpen(false) }}
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white flex items-center gap-2 transition-colors">
                       🔄 Çalışan Değiştir
