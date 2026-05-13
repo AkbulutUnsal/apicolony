@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const DISEASE_TYPES = [
   'Varroa', 'Nosema', 'Amerikan Yavru Çürüklüğü', 'Avrupa Yavru Çürüklüğü',
@@ -29,6 +30,7 @@ const EMPTY_FORM = {
 
 export default function TreatmentPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [records, setRecords] = useState([])
   const [apiaries, setApiaries] = useState([])
   const [hives, setHives] = useState([])
@@ -75,7 +77,7 @@ export default function TreatmentPage() {
   }
 
   async function save() {
-    if (!form.disease_type) { toast.error('Hastalık/zararlı türü seçin'); return }
+    if (!form.disease_type) { toast.error(t('treatment.error_type')); return }
     setSaving(true)
 
     const targetHiveIds = form.hive_ids.length > 0
@@ -139,11 +141,11 @@ export default function TreatmentPage() {
         {/* Başlık */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-black">Tedavi Kayıtları</h1>
+            <h1 className="text-xl font-black">{t('treatment.title')}</h1>
             <p className="text-sm text-gray-400 mt-0.5">{records.length} toplam kayıt</p>
           </div>
           <button className="btn-gold" onClick={() => { setForm(EMPTY_FORM); setShowForm(true) }}>
-            + Yeni Tedavi
+            {t('treatment.new_btn')}
           </button>
         </div>
 
@@ -153,7 +155,7 @@ export default function TreatmentPage() {
             style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid rgba(231,76,60,0.3)' }}>
             <span className="text-xl flex-shrink-0">⚠️</span>
             <div>
-              <div className="font-bold text-sm text-red-400">Yaklaşan Tekrar Tedavi</div>
+              <div className="font-bold text-sm text-red-400">{t('treatment.upcoming_title')}</div>
               <div className="text-xs text-gray-300 mt-1">
                 {upcoming.map(r => {
                   const hiveNo = r.hives?.hive_no || (r.hive_id ? '?' : 'Toplu')
@@ -183,7 +185,7 @@ export default function TreatmentPage() {
               style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
               <div className="flex items-center justify-between px-6 py-4"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <h2 className="font-black text-base">Tedavi Kaydı Ekle</h2>
+                <h2 className="font-black text-base">{t('treatment.add_title')}</h2>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
               </div>
 
@@ -194,45 +196,45 @@ export default function TreatmentPage() {
                     <input type="date" value={form.treatment_date} onChange={e => set('treatment_date', e.target.value)} />
                   </div>
                   <div>
-                    <label className="field-label">Hastalık / Zararlı</label>
+                    <label className="field-label">{t('treatment.disease_type')}</label>
                     <select value={form.disease_type} onChange={e => set('disease_type', e.target.value)}>
                       {DISEASE_TYPES.map(d => <option key={d}>{d}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Şiddet</label>
+                    <label className="field-label">{t('treatment.severity')}</label>
                     <select value={form.severity} onChange={e => set('severity', e.target.value)}>
                       {SEVERITY_LEVELS.map(s => <option key={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Kullanılan Ürün</label>
+                    <label className="field-label">{t('treatment.product')}</label>
                     <input value={form.product_name} onChange={e => set('product_name', e.target.value)}
                       placeholder="örn. Apistan, Oxalic Acid" />
                   </div>
                   <div>
-                    <label className="field-label">Doz</label>
+                    <label className="field-label">{t('treatment.dose')}</label>
                     <input value={form.dose} onChange={e => set('dose', e.target.value)}
                       placeholder="örn. 5ml, 2g" />
                   </div>
                   <div>
-                    <label className="field-label">Uygulama Yöntemi</label>
+                    <label className="field-label">{t('treatment.method')}</label>
                     <select value={form.application_method} onChange={e => set('application_method', e.target.value)}>
                       {APPLICATION_METHODS.map(m => <option key={m}>{m}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Bekleme Süresi (gün)</label>
+                    <label className="field-label">{t('treatment.withdrawal')}</label>
                     <input type="number" min="0" value={form.withdrawal_days}
                       onChange={e => set('withdrawal_days', e.target.value)}
                       placeholder="Hasat öncesi bekleme" />
                   </div>
                   <div>
-                    <label className="field-label">Tekrar Tarihi</label>
+                    <label className="field-label">{t('treatment.repeat_date')}</label>
                     <input type="date" value={form.repeat_date} onChange={e => set('repeat_date', e.target.value)} />
                   </div>
                   <div className="col-span-2">
-                    <label className="field-label">Uygulayan Kişi</label>
+                    <label className="field-label">{t('treatment.applied_by')}</label>
                     <input value={form.applied_by} onChange={e => set('applied_by', e.target.value)}
                       placeholder="Ad soyad" />
                   </div>
@@ -334,10 +336,10 @@ export default function TreatmentPage() {
         ) : filteredRecords.length === 0 ? (
           <div className="card flex flex-col items-center py-14 text-center">
             <div className="text-4xl mb-3">💊</div>
-            <p className="font-bold mb-1">Henüz tedavi kaydı yok</p>
-            <p className="text-sm text-gray-400 mb-5">İlk tedavi kaydını ekleyin</p>
+            <p className="font-bold mb-1">{t('treatment.empty_title')}</p>
+            <p className="text-sm text-gray-400 mb-5">{t('treatment.empty_subtitle')}</p>
             <button className="btn-gold" onClick={() => { setForm(EMPTY_FORM); setShowForm(true) }}>
-              + Tedavi Ekle
+              {t('treatment.empty_btn')}
             </button>
           </div>
         ) : (
@@ -389,7 +391,7 @@ function TreatmentRow({ record }) {
               {record.hives.hive_no}
             </span>
           )}
-          {isRepeatSoon && <span className="text-xs text-red-400 font-bold">⚠️ Tekrar yakın</span>}
+          {isRepeatSoon && <span className="text-xs text-red-400 font-bold">{t('treatment.repeat_soon')}</span>}
         </div>
         <div className="text-xs text-gray-400 mt-0.5">
           {date}

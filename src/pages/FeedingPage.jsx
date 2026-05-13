@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const FEED_TYPES = ['Şeker Şurubu', 'Kandı / Şeker Hamuru', 'Polen Keki', 'Arı Ekmeği', 'Hazır Kek', 'Diğer']
 const UNITS = ['kg', 'litre', 'adet']
@@ -20,6 +21,7 @@ const EMPTY_FORM = {
 
 export default function FeedingPage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [records, setRecords] = useState([])
   const [apiaries, setApiaries] = useState([])
   const [hives, setHives] = useState([])
@@ -66,8 +68,8 @@ export default function FeedingPage() {
   }
 
   async function save() {
-    if (!form.amount || parseFloat(form.amount) <= 0) { toast.error('Miktar gerekli'); return }
-    if (!form.feed_type) { toast.error('Besleme türü seçin'); return }
+    if (!form.amount || parseFloat(form.amount) <= 0) { toast.error(t('feeding.error_amount')); return }
+    if (!form.feed_type) { toast.error(t('feeding.error_type')); return }
     setSaving(true)
 
     // Toplu besleme: seçili kovan yoksa arılığın tüm kovanlarına ayrı kayıt
@@ -121,11 +123,11 @@ export default function FeedingPage() {
         {/* Başlık */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-black">Besleme Kayıtları</h1>
+            <h1 className="text-xl font-black">{t('feeding.title')}</h1>
             <p className="text-sm text-gray-400 mt-0.5">Bu ay {monthRecords.length} kayıt · {monthCost > 0 ? `${monthCost.toFixed(0)} ₺ maliyet` : ''}</p>
           </div>
           <button className="btn-gold" onClick={() => { setForm(EMPTY_FORM); setShowForm(true) }}>
-            + Yeni Besleme
+            {t('feeding.new_btn')}
           </button>
         </div>
 
@@ -143,7 +145,7 @@ export default function FeedingPage() {
               style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
               <div className="flex items-center justify-between px-6 py-4"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <h2 className="font-black text-base">Besleme Kaydı Ekle</h2>
+                <h2 className="font-black text-base">{t('feeding.add_title')}</h2>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
               </div>
 
@@ -154,7 +156,7 @@ export default function FeedingPage() {
                     <input type="date" value={form.feed_date} onChange={e => set('feed_date', e.target.value)} />
                   </div>
                   <div>
-                    <label className="field-label">Besleme Türü</label>
+                    <label className="field-label">{t('feeding.feed_type')}</label>
                     <select value={form.feed_type} onChange={e => set('feed_type', e.target.value)}>
                       {FEED_TYPES.map(f => <option key={f}>{f}</option>)}
                     </select>
@@ -165,13 +167,13 @@ export default function FeedingPage() {
                       onChange={e => set('amount', e.target.value)} placeholder="0" />
                   </div>
                   <div>
-                    <label className="field-label">Birim</label>
+                    <label className="field-label">{t('feeding.unit')}</label>
                     <select value={form.unit} onChange={e => set('unit', e.target.value)}>
                       {UNITS.map(u => <option key={u}>{u}</option>)}
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="field-label">Maliyet (₺) — opsiyonel</label>
+                    <label className="field-label">{t('feeding.cost_optional')}</label>
                     <input type="number" min="0" step="0.01" value={form.cost}
                       onChange={e => set('cost', e.target.value)} placeholder="0.00" />
                   </div>
@@ -256,10 +258,10 @@ export default function FeedingPage() {
         ) : filteredRecords.length === 0 ? (
           <div className="card flex flex-col items-center py-14 text-center">
             <div className="text-4xl mb-3">🍯</div>
-            <p className="font-bold mb-1">Henüz besleme kaydı yok</p>
-            <p className="text-sm text-gray-400 mb-5">İlk besleme kaydını ekleyin</p>
+            <p className="font-bold mb-1">{t('feeding.empty_title')}</p>
+            <p className="text-sm text-gray-400 mb-5">{t('feeding.empty_subtitle')}</p>
             <button className="btn-gold" onClick={() => { setForm(EMPTY_FORM); setShowForm(true) }}>
-              + Besleme Ekle
+              {t('feeding.empty_btn')}
             </button>
           </div>
         ) : (

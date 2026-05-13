@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const FLORA_TYPES = ['Çiçek / Karma', 'Orman / Çam', 'Kestane', 'Akasya', 'Kekik', 'Ihlamur', 'Yayla', 'Narenciye', 'Diğer']
 const APIARY_TYPES = ['Sabit', 'Gezginci']
@@ -23,6 +24,7 @@ const EMPTY_FORM = {
 export default function ApiariesPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [apiaries, setApiaries] = useState([])
   const [hiveCounts, setHiveCounts] = useState({})
   const [loading, setLoading] = useState(true)
@@ -73,7 +75,7 @@ export default function ApiariesPage() {
   }
 
   async function save() {
-    if (!form.name.trim()) { toast.error('Arılık adı gerekli'); return }
+    if (!form.name.trim()) { toast.error('t('apiaries.error_name')'); return }
     setSaving(true)
     const payload = {
       user_id: user.id,
@@ -95,7 +97,7 @@ export default function ApiariesPage() {
     }
     if (error) toast.error('Kaydedilemedi: ' + error.message)
     else {
-      toast.success(editing ? 'Arılık güncellendi' : 'Arılık eklendi')
+      toast.success(editing ? 't('apiaries.updated')' : 't('apiaries.saved')')
       setShowForm(false)
       fetchAll()
     }
@@ -103,11 +105,11 @@ export default function ApiariesPage() {
   }
 
   async function deleteApiary(id) {
-    if (!confirm('Bu arılığı silmek istiyor musunuz? Bağlı kovanların arılık bağlantısı kaldırılır.')) return
+    if (!confirm(t('apiaries.confirm_delete'))) return
     setDeleting(id)
     const { error } = await supabase.from('apiaries').delete().eq('id', id)
-    if (error) toast.error('Silinemedi: ' + error.message)
-    else { toast.success('Arılık silindi'); fetchAll() }
+    if (error) toast.error('t('common.error_save') + ': '' + error.message)
+    else { toast.success('t('apiaries.deleted')'); fetchAll() }
     setDeleting(null)
   }
 
@@ -123,12 +125,12 @@ export default function ApiariesPage() {
         {/* Başlık */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-black">Arılıklar</h1>
+            <h1 className="text-xl font-black">{t('apiaries.title')}</h1>
             <p className="text-sm text-gray-400 mt-0.5">
               {apiaries.length} arılık · {totalHives} aktif kovan
             </p>
           </div>
-          <button className="btn-gold" onClick={openNew}>+ Yeni Arılık</button>
+          <button className="btn-gold" onClick={openNew}>{t('apiaries.new_btn')}</button>
         </div>
 
         {/* Form Modal */}
@@ -139,7 +141,7 @@ export default function ApiariesPage() {
               <div className="flex items-center justify-between px-6 py-4"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 <h2 className="font-black text-base">
-                  {editing ? 'Arılığı Düzenle' : 'Yeni Arılık Ekle'}
+                  {editing ? 'Arılığı Düzenle' : '{editing ? t('apiaries.edit_title') : t('apiaries.add_title')}'}
                 </h2>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
               </div>
@@ -147,34 +149,34 @@ export default function ApiariesPage() {
               <div className="p-6 flex flex-col gap-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="field-label">Arılık Adı *</label>
+                    <label className="field-label">{t('apiaries.name')} *</label>
                     <input value={form.name} onChange={e => set('name', e.target.value)}
                       placeholder="örn. Kuzey Arılığı, Yayladağ 1" autoFocus />
                   </div>
                   <div>
-                    <label className="field-label">Köy / Mevki</label>
+                    <label className="field-label">{t('apiaries.location')}</label>
                     <input value={form.location} onChange={e => set('location', e.target.value)}
                       placeholder="örn. Sevimli Köyü" />
                   </div>
                   <div>
-                    <label className="field-label">İlçe / Bölge</label>
+                    <label className="field-label">{t('apiaries.region')}</label>
                     <input value={form.region} onChange={e => set('region', e.target.value)}
                       placeholder="örn. Posof / Ardahan" />
                   </div>
                   <div>
-                    <label className="field-label">Flora Tipi</label>
+                    <label className="field-label">{t('apiaries.flora')}</label>
                     <select value={form.flora_type} onChange={e => set('flora_type', e.target.value)}>
                       {FLORA_TYPES.map(f => <option key={f}>{f}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Arılık Tipi</label>
+                    <label className="field-label">{t('apiaries.apiary_type')}</label>
                     <select value={form.apiary_type} onChange={e => set('apiary_type', e.target.value)}>
                       {APIARY_TYPES.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Rakım (metre)</label>
+                    <label className="field-label">{t('apiaries.altitude')}</label>
                     <input type="number" min="0" max="4000" value={form.altitude_m}
                       onChange={e => set('altitude_m', e.target.value)} placeholder="örn. 1200" />
                   </div>
@@ -196,12 +198,12 @@ export default function ApiariesPage() {
                         href={`https://www.google.com/maps?q=${form.latitude},${form.longitude}`}
                         target="_blank" rel="noreferrer"
                         className="text-xs text-gold hover:underline">
-                        📍 Google Maps'te görüntüle →
+                        {t('apiaries.view_maps')}
                       </a>
                     </div>
                   )}
                   <div className="sm:col-span-2">
-                    <label className="field-label">Notlar</label>
+                    <label className="field-label">{t('common.notes')}</label>
                     <textarea rows={3} value={form.notes} onChange={e => set('notes', e.target.value)}
                       placeholder="Arılık hakkında notlar..." className="resize-none" />
                   </div>
@@ -226,9 +228,9 @@ export default function ApiariesPage() {
         ) : apiaries.length === 0 ? (
           <div className="card flex flex-col items-center justify-center py-16 text-center">
             <div className="text-5xl mb-4">🌿</div>
-            <p className="text-lg font-bold mb-1">Henüz arılık yok</p>
-            <p className="text-sm text-gray-400 mb-6">İlk arılığını ekleyerek başla</p>
-            <button className="btn-gold" onClick={openNew}>+ İlk Arılığı Ekle</button>
+            <p className="text-lg font-bold mb-1">{t('apiaries.empty_title')}</p>
+            <p className="text-sm text-gray-400 mb-6">{t('apiaries.empty_subtitle')}</p>
+            <button className="btn-gold" onClick={openNew}>{t('apiaries.empty_btn')}</button>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -309,7 +311,7 @@ function ApiaryCard({ apiary, hiveCount, onEdit, onDelete, onViewHives, deleting
           className="flex-1 text-xs font-bold py-2 rounded-lg transition-colors"
           style={{ background: 'rgba(245,197,24,0.12)', color: '#f5c518', border: '1px solid rgba(245,197,24,0.25)' }}
           onClick={onViewHives}>
-          🐝 Kovanları Gör
+          {t('apiaries.view_hives')}
         </button>
         <button className="btn-ghost px-3 text-xs" onClick={onEdit}>✏️</button>
         <button

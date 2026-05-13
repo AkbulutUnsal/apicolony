@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import HexLogo from '../components/ui/HexLogo'
 
 export default function RegisterPage() {
   const { signUp } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -17,10 +19,10 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await signUp(email, password, fullName)
-      toast.success('Hesap oluşturuldu! Giriş yapabilirsiniz.')
+      toast.success(t('auth.register_success'))
       navigate('/giris')
     } catch (err) {
-      toast.error(err.message || 'Kayıt başarısız')
+      toast.error(err.message || t('auth.register_error'))
     } finally {
       setLoading(false)
     }
@@ -30,30 +32,30 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-dark-400 flex items-center justify-center p-4">
       <div className="bg-dark-200 border border-white/10 rounded-2xl p-10 w-full max-w-sm text-center shadow-2xl">
         <HexLogo size={52} className="mx-auto mb-5" />
-        <h1 className="text-2xl font-black mb-2">Hesap Oluştur</h1>
-        <p className="text-sm text-gray-400 mb-8">ApiColony'e ücretsiz kayıt olun.</p>
+        <h1 className="text-2xl font-black mb-2">{t('auth.register_title')}</h1>
+        <p className="text-sm text-gray-400 mb-8">{t('auth.register_subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="text-left space-y-4">
           <div>
-            <label className="field-label">Ad Soyad</label>
+            <label className="field-label">{t('auth.fullname')}</label>
             <input type="text" placeholder="Ünsal Akbulut" value={fullName} onChange={e => setFullName(e.target.value)} required />
           </div>
           <div>
-            <label className="field-label">E-posta</label>
+            <label className="field-label">{t('auth.email')}</label>
             <input type="email" placeholder="m@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div>
-            <label className="field-label">Şifre</label>
-            <input type="password" placeholder="En az 6 karakter" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+            <label className="field-label">{t('auth.password')}</label>
+            <input type="password" {...{placeholder: undefined}} placeholder={t("auth.password_min")} value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
           </div>
           <button type="submit" disabled={loading}
             className="btn-gold w-full justify-center py-3 text-base mt-2">
-            {loading ? 'Kaydediliyor...' : 'Kayıt Ol'}
+            {loading ? t('auth.registering') : t('auth.register_btn')}
           </button>
         </form>
         <p className="mt-5 text-sm text-gray-400">
-          Zaten hesabınız var mı?{' '}
-          <Link to="/giris" className="text-gold hover:underline font-semibold">Giriş yap</Link>
+          {t('auth.has_account')}{' '}
+          <Link to="/giris" className="text-gold hover:underline font-semibold">{t('auth.login_link')}</Link>
         </p>
       </div>
     </div>

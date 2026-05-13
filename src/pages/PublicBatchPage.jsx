@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '../components/ui/LanguageSwitcher'
 import { supabase } from '../lib/supabase'
 
 export default function PublicBatchPage() {
   const { batchNo } = useParams()
+  const { t } = useTranslation()
   const [batch, setBatch] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -31,8 +34,8 @@ export default function PublicBatchPage() {
   if (notFound) return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6" style={{ background: '#0f0f0f' }}>
       <div className="text-6xl mb-4">🍯</div>
-      <h1 className="text-2xl font-black text-white mb-2">Parti Bulunamadı</h1>
-      <p className="text-gray-400 text-sm">Bu QR kodu geçersiz veya yayından kaldırılmış.</p>
+      <h1 className="text-2xl font-black text-white mb-2">{t('public_batch.not_found_title')}</h1>
+      <p className="text-gray-400 text-sm">{t('public_batch.not_found_desc')}</p>
       <p className="text-gray-600 text-xs mt-2">{batchNo}</p>
     </div>
   )
@@ -57,6 +60,11 @@ export default function PublicBatchPage() {
         </p>
       </div>
 
+      {/* Dil Seçici */}
+      <div className="flex justify-center mb-2">
+        <LanguageSwitcher compact />
+      </div>
+
       {/* Altın çizgi */}
       <div className="mx-6 mb-6 h-px" style={{ background: 'linear-gradient(to right, transparent, #f5c518, transparent)' }} />
 
@@ -77,12 +85,12 @@ export default function PublicBatchPage() {
             Ürün Bilgileri
           </div>
           <div className="divide-y" style={{ divideColor: 'rgba(255,255,255,0.05)' }}>
-            <InfoRow icon="🏷️" label="Parti No" value={batch.batch_no} mono />
-            <InfoRow icon="🍯" label="Bal Türü" value={batch.honey_type} />
-            {harvestDate && <InfoRow icon="📅" label="Hasat Tarihi" value={harvestDate} />}
-            {packageDate && <InfoRow icon="📦" label="Ambalaj Tarihi" value={packageDate} />}
-            {batch.total_kg && <InfoRow icon="⚖️" label="Miktar" value={`${batch.total_kg} kg`} />}
-            {batch.brix_value && <InfoRow icon="💧" label="Nem Oranı" value={`%${batch.brix_value}`} />}
+            <InfoRow icon="🏷️" label={t('public_batch.batch_no')} value={batch.batch_no} mono />
+            <InfoRow icon="🍯" label={t('public_batch.honey_type')} value={batch.honey_type} />
+            {harvestDate && <InfoRow icon="📅" label={t('public_batch.harvest_date')} value={harvestDate} />}
+            {packageDate && <InfoRow icon="📦" label={t('public_batch.package_date')} value={packageDate} />}
+            {batch.total_kg && <InfoRow icon="⚖️" label={t('public_batch.total_kg')} value={`${batch.total_kg} kg`} />}
+            {batch.brix_value && <InfoRow icon="💧" label={t('public_batch.humidity')} value={`${batch.brix_value}%`} />}
           </div>
         </div>
 
@@ -94,12 +102,12 @@ export default function PublicBatchPage() {
               Üretim Bölgesi
             </div>
             <div className="divide-y" style={{ divideColor: 'rgba(255,255,255,0.05)' }}>
-              {apiary.name && <InfoRow icon="🌿" label="Arılık" value={apiary.name} />}
+              {apiary.name && <InfoRow icon="🌿" label={t('public_batch.apiary_name')} value={apiary.name} />}
               {(apiary.location || apiary.region) && (
-                <InfoRow icon="📍" label="Lokasyon" value={[apiary.location, apiary.region].filter(Boolean).join(', ')} />
+                <InfoRow icon="📍" label={t('public_batch.location')} value={[apiary.location, apiary.region].filter(Boolean).join(', ')} />
               )}
-              {apiary.flora_type && <InfoRow icon="🌸" label="Flora" value={apiary.flora_type} />}
-              {apiary.altitude_m && <InfoRow icon="⛰️" label="Rakım" value={`${apiary.altitude_m} m`} />}
+              {apiary.flora_type && <InfoRow icon="🌸" label={t('public_batch.flora')} value={apiary.flora_type} />}
+              {apiary.altitude_m && <InfoRow icon="⛰️" label={t('public_batch.altitude')} value={`${apiary.altitude_m} m`} />}
             </div>
           </div>
         )}
@@ -125,7 +133,7 @@ export default function PublicBatchPage() {
                 🐝
               </div>
               <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">Üretici</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wide">{t('public_batch.producer_label')}</div>
                 <div className="font-bold text-white">{batch.producer_name}</div>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { QRCodeCanvas } from 'qrcode.react'
 
 const HONEY_TYPES = ['Çiçek Balı', 'Yayla Balı', 'Orman Balı', 'Kestane Balı', 'Akasya Balı', 'Kekik Balı', 'Ihlamur Balı', 'Çam Balı', 'Kafkas Flora Balı', 'Diğer']
@@ -33,6 +34,7 @@ function generateBatchNo() {
 
 export default function BatchPage() {
   const { user, profile } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [batches, setBatches] = useState([])
   const [apiaries, setApiaries] = useState([])
@@ -65,8 +67,8 @@ export default function BatchPage() {
   }
 
   async function save() {
-    if (!form.batch_no.trim()) { toast.error('Parti numarası gerekli'); return }
-    if (!form.total_kg || parseFloat(form.total_kg) <= 0) { toast.error('Miktar gerekli'); return }
+    if (!form.batch_no.trim()) { toast.error(t('batches.error_no')); return }
+    if (!form.total_kg || parseFloat(form.total_kg) <= 0) { toast.error(t('batches.error_kg')); return }
     setSaving(true)
     const payload = {
       user_id: user.id,
@@ -86,7 +88,7 @@ export default function BatchPage() {
     }
     const { error } = await supabase.from('honey_batches').insert(payload)
     if (error) toast.error('Kaydedilemedi: ' + error.message)
-    else { toast.success('Parti oluşturuldu!'); setShowForm(false); fetchAll() }
+    else { toast.success(t('batches.saved')); setShowForm(false); fetchAll() }
     setSaving(false)
   }
 
@@ -99,11 +101,11 @@ export default function BatchPage() {
     const { error } = await supabase.from('honey_batches')
       .update({ is_public: !batch.is_public }).eq('id', batch.id)
     if (error) toast.error('Güncellenemedi')
-    else { toast.success(batch.is_public ? 'Gizlendi' : 'Yayınlandı'); fetchAll() }
+    else { toast.success(batch.is_public ? t('batches.hidden_success') : t('batches.published_success')); fetchAll() }
   }
 
   async function deleteBatch(id) {
-    if (!confirm('Bu partiyi silmek istediğinizden emin misiniz?')) return
+    if (!confirm(t('batches.confirm_delete'))) return
     const { error } = await supabase.from('honey_batches').delete().eq('id', id)
     if (error) toast.error('Silinemedi')
     else { toast.success('Parti silindi'); fetchAll() }
@@ -119,12 +121,12 @@ export default function BatchPage() {
         {/* Başlık */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-black">Bal Partileri</h1>
+            <h1 className="text-xl font-black">{t('batches.title')}</h1>
             <p className="text-sm text-gray-400 mt-0.5">
               {batches.length} parti · {totalKg.toFixed(1)} kg toplam
             </p>
           </div>
-          <button className="btn-gold" onClick={openNew}>+ Yeni Parti</button>
+          <button className="btn-gold" onClick={openNew}>{t('batches.new_btn')}</button>
         </div>
 
         {/* Özet */}
@@ -141,43 +143,43 @@ export default function BatchPage() {
               style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
               <div className="flex items-center justify-between px-6 py-4"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <h2 className="font-black text-base">Yeni Bal Partisi</h2>
+                <h2 className="font-black text-base">{t('batches.add_title')}</h2>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
               </div>
               <div className="p-6 flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="field-label">Parti Numarası *</label>
+                    <label className="field-label">{t('batches.batch_no')} *</label>
                     <input value={form.batch_no} onChange={e => set('batch_no', e.target.value)}
                       placeholder="BAL-202605-1234" />
                   </div>
                   <div>
-                    <label className="field-label">Bal Türü</label>
+                    <label className="field-label">{t('batches.honey_type')}</label>
                     <select value={form.honey_type} onChange={e => set('honey_type', e.target.value)}>
                       {HONEY_TYPES.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Hasat Tarihi</label>
+                    <label className="field-label">{t('batches.harvest_date')}</label>
                     <input type="date" value={form.harvest_date} onChange={e => set('harvest_date', e.target.value)} />
                   </div>
                   <div>
-                    <label className="field-label">Toplam Kg *</label>
+                    <label className="field-label">{t('batches.total_kg')} *</label>
                     <input type="number" min="0" step="0.1" value={form.total_kg}
                       onChange={e => set('total_kg', e.target.value)} placeholder="0.0" />
                   </div>
                   <div>
-                    <label className="field-label">Nem / Brix (%)</label>
+                    <label className="field-label">{t('batches.brix')}</label>
                     <input type="number" min="0" max="100" step="0.1" value={form.brix_value}
                       onChange={e => set('brix_value', e.target.value)} placeholder="örn. 18.5" />
                   </div>
                   <div>
-                    <label className="field-label">Kavanoz Sayısı</label>
+                    <label className="field-label">{t('batches.jar_count')}</label>
                     <input type="number" min="0" value={form.jar_count}
                       onChange={e => set('jar_count', e.target.value)} placeholder="0" />
                   </div>
                   <div>
-                    <label className="field-label">Ambalaj Tarihi</label>
+                    <label className="field-label">{t('batches.package_date')}</label>
                     <input type="date" value={form.package_date} onChange={e => set('package_date', e.target.value)} />
                   </div>
                   {apiaries.length > 0 && (
@@ -190,23 +192,23 @@ export default function BatchPage() {
                     </div>
                   )}
                   <div className="col-span-2">
-                    <label className="field-label">Üretici Adı (QR sayfasında görünür)</label>
+                    <label className="field-label">{t('batches.producer')}</label>
                     <input value={form.producer_name} onChange={e => set('producer_name', e.target.value)}
                       placeholder="Ad Soyad / İşletme adı" />
                   </div>
                   <div className="col-span-2">
-                    <label className="field-label">Bölge / Ürün Hikayesi (QR sayfasında görünür)</label>
+                    <label className="field-label">{t('batches.story')}</label>
                     <textarea rows={3} value={form.region_story} onChange={e => set('region_story', e.target.value)}
                       placeholder="örn. Bu bal Ardahan Posof yaylalarında, 1800 metre rakımda Kafkas arılarından hasat edilmiştir..."
                       className="resize-none" />
                   </div>
                   <div className="col-span-2">
-                    <label className="field-label">Analiz / Kalite Notu</label>
+                    <label className="field-label">{t('batches.analysis')}</label>
                     <input value={form.analysis_note} onChange={e => set('analysis_note', e.target.value)}
                       placeholder="örn. Tarım Bakanlığı onaylı, antibiyotik bulunmadı" />
                   </div>
                   <div className="col-span-2">
-                    <label className="field-label">İç Notlar (müşteride görünmez)</label>
+                    <label className="field-label">{t('batches.internal_notes')}</label>
                     <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
                       className="resize-none" placeholder="Depolama yeri, özel notlar..." />
                   </div>
@@ -244,9 +246,9 @@ export default function BatchPage() {
               <div className="flex gap-2 justify-center flex-wrap">
                 <button className="btn-ghost text-sm" onClick={() => {
                   navigator.clipboard.writeText(qrDataUrl)
-                  toast.success('Link kopyalandı')
+                  toast.success(t('batches.qr_copied'))
                 }}>
-                  🔗 Linki Kopyala
+                  {t('batches.qr_copy')}
                 </button>
                 <button className="btn-ghost text-sm px-3" onClick={() => setQrModal(null)}>✕</button>
               </div>
@@ -262,9 +264,9 @@ export default function BatchPage() {
         ) : batches.length === 0 ? (
           <div className="card flex flex-col items-center py-14 text-center">
             <div className="text-4xl mb-3">🫙</div>
-            <p className="font-bold mb-1">Henüz parti yok</p>
-            <p className="text-sm text-gray-400 mb-5">İlk bal partisini oluştur ve QR kodunu al</p>
-            <button className="btn-gold" onClick={openNew}>+ İlk Partiyi Oluştur</button>
+            <p className="font-bold mb-1">{t('batches.empty_title')}</p>
+            <p className="text-sm text-gray-400 mb-5">{t('batches.empty_subtitle')}</p>
+            <button className="btn-gold" onClick={openNew}>{t('batches.empty_btn')}</button>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -322,15 +324,15 @@ function BatchCard({ batch, onQR, onTogglePublic, onDelete, onPreview }) {
       </div>
       {/* Sağ: aksiyonlar */}
       <div className="flex gap-2 flex-shrink-0 flex-wrap">
-        <button className="btn-gold text-xs px-3 py-1.5" onClick={onQR}>📱 QR Kod</button>
-        <button className="btn-ghost text-xs px-3 py-1.5" onClick={onPreview}>👁️ Önizle</button>
+        <button className="btn-gold text-xs px-3 py-1.5" onClick={onQR}>{t('batches.qr_btn')}</button>
+        <button className="btn-ghost text-xs px-3 py-1.5" onClick={onPreview}>{t('batches.preview_btn')}</button>
         <button
           className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
           style={batch.is_public
             ? { background: 'rgba(39,174,96,0.15)', color: '#27ae60', border: '1px solid rgba(39,174,96,0.3)' }
             : { background: 'rgba(255,255,255,0.06)', color: '#888', border: '1px solid rgba(255,255,255,0.1)' }}
           onClick={onTogglePublic}>
-          {batch.is_public ? '✅ Yayında' : '⬜ Yayınla'}
+          {batch.is_public ? '{t('batches.published')}' : '{t('batches.publish_btn')}'}
         </button>
         <button className="btn-ghost text-xs px-3 py-1.5" style={{ color: '#e74c3c' }} onClick={onDelete}>🗑️</button>
       </div>

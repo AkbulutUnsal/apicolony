@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from '../ui/LanguageSwitcher'
 import { useAuth } from '../../hooks/useAuth'
 import { useWorker } from '../../hooks/useWorker'
 import HexLogo from '../ui/HexLogo'
@@ -18,17 +20,17 @@ export default function Navbar({ onAddHive, addingHive }) {
     : 'Arıcı'
 
   const navLinks = [
-    { path: '/dashboard', label: '📊 Dashboard' },
-    { path: '/panel', label: '🐝 Kovanlar' },
-    { path: '/arliklar', label: '🌿 Arılıklar' },
-    { path: '/besleme', label: '🍯 Besleme' },
-    { path: '/tedavi', label: '💊 Tedavi' },
-    { path: '/hasat', label: '🫙 Hasat' },
-    { path: '/partiler', label: '🍯 Partiler' },
-    { path: '/finans', label: '💰 Finans' },
-    { path: '/raporlar', label: '📋 Raporlar' },
-    { path: '/ai', label: '🤖 AI' },
-    { path: '/calisanlar', label: '👥 Çalışanlar' },
+    { path: '/dashboard', label: t('nav.dashboard') },
+    { path: '/panel', label: t('nav.hives') },
+    { path: '/arliklar', label: t('nav.apiaries') },
+    { path: '/besleme', label: t('nav.feeding') },
+    { path: '/tedavi', label: t('nav.treatment') },
+    { path: '/hasat', label: t('nav.harvest') },
+    { path: '/partiler', label: t('nav.batches') },
+    { path: '/finans', label: t('nav.finance') },
+    { path: '/raporlar', label: t('nav.reports') },
+    { path: '/ai', label: t('nav.ai') },
+    { path: '/calisanlar', label: t('nav.workers') },
   ]
 
   async function handleSignOut() {
@@ -63,7 +65,7 @@ export default function Navbar({ onAddHive, addingHive }) {
         <div className="flex items-center gap-2">
           {onAddHive && (
             <button className="btn-gold text-sm flex" onClick={onAddHive} disabled={addingHive}>
-              {addingHive ? '⏳' : '+'} Yeni Kovan
+              {addingHive ? '⏳' : '+'} {t('nav.new_hive').replace('+ ', '')}
             </button>
           )}
           <button className="btn-ghost text-sm hidden sm:flex" onClick={() => navigate('/tara')}>

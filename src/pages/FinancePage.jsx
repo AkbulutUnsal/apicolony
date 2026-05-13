@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const EXPENSE_CATS = ['Şeker / Kek', 'İlaç / Tedavi', 'Kovan / Ekipman', 'Ana Arı', 'Nakliye', 'İşçilik', 'Ambalaj', 'Diğer']
@@ -26,6 +27,7 @@ const EMPTY_INCOME = {
 
 export default function FinancePage() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [expenses, setExpenses] = useState([])
   const [incomes, setIncomes] = useState([])
   const [apiaries, setApiaries] = useState([])
@@ -54,7 +56,7 @@ export default function FinancePage() {
   }
 
   async function saveExpense() {
-    if (!expenseForm.amount || parseFloat(expenseForm.amount) <= 0) { toast.error('Tutar gerekli'); return }
+    if (!expenseForm.amount || parseFloat(expenseForm.amount) <= 0) { toast.error(t('finance.error_amount')); return }
     setSaving(true)
     const { error } = await supabase.from('cost_records').insert({
       user_id: user.id,
@@ -65,12 +67,12 @@ export default function FinancePage() {
       apiary_id: expenseForm.apiary_id || null
     })
     if (error) toast.error('Kaydedilemedi: ' + error.message)
-    else { toast.success('Gider eklendi'); setShowExpenseForm(false); setExpenseForm(EMPTY_EXPENSE); fetchAll() }
+    else { toast.success(t('finance.expense_added')); setShowExpenseForm(false); setExpenseForm(EMPTY_EXPENSE); fetchAll() }
     setSaving(false)
   }
 
   async function saveIncome() {
-    if (!incomeForm.amount || parseFloat(incomeForm.amount) <= 0) { toast.error('Tutar gerekli'); return }
+    if (!incomeForm.amount || parseFloat(incomeForm.amount) <= 0) { toast.error(t('finance.error_amount')); return }
     setSaving(true)
     const { error } = await supabase.from('income_records').insert({
       user_id: user.id,
@@ -82,7 +84,7 @@ export default function FinancePage() {
       apiary_id: incomeForm.apiary_id || null
     })
     if (error) toast.error('Kaydedilemedi: ' + error.message)
-    else { toast.success('Gelir eklendi'); setShowIncomeForm(false); setIncomeForm(EMPTY_INCOME); fetchAll() }
+    else { toast.success(t('finance.income_added')); setShowIncomeForm(false); setIncomeForm(EMPTY_INCOME); fetchAll() }
     setSaving(false)
   }
 
@@ -134,8 +136,8 @@ export default function FinancePage() {
         {/* Başlık */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 className="text-xl font-black">Maliyet & Gelir</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Arılık finansal takibi</p>
+            <h1 className="text-xl font-black">{t('finance.title')}</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{t('finance.subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <select value={filterYear} onChange={e => setFilterYear(parseInt(e.target.value))}
@@ -143,10 +145,10 @@ export default function FinancePage() {
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <button className="btn-ghost text-sm" onClick={() => { setIncomeForm(EMPTY_INCOME); setShowIncomeForm(true) }}>
-              + Gelir
+              {t('finance.add_income')}
             </button>
             <button className="btn-gold text-sm" onClick={() => { setExpenseForm(EMPTY_EXPENSE); setShowExpenseForm(true) }}>
-              + Gider
+              {t('finance.add_expense')}
             </button>
           </div>
         </div>
@@ -237,7 +239,7 @@ export default function FinancePage() {
 
         {/* Gider Form Modal */}
         {showExpenseForm && (
-          <FormModal title="Gider Ekle" onClose={() => setShowExpenseForm(false)}>
+          <FormModal title={t('finance.expense_title')} onClose={() => setShowExpenseForm(false)}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="field-label">Tarih</label>
@@ -278,7 +280,7 @@ export default function FinancePage() {
 
         {/* Gelir Form Modal */}
         {showIncomeForm && (
-          <FormModal title="Gelir Ekle" onClose={() => setShowIncomeForm(false)}>
+          <FormModal title={t('finance.income_title')} onClose={() => setShowIncomeForm(false)}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="field-label">Tarih</label>
