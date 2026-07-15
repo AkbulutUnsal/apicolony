@@ -12,11 +12,13 @@ export default function HiveCard({ hive, onClick }) {
   }
   const t = themes[status] || themes.new
 
-  // ── BALLIK (süper) katmanları için üstte ekstra alan ──
-  const roofTop = 9
-  const superHeight = 9
-  const superGap = 1
-  const minY = supersToShow > 0 ? roofTop - supersToShow * (superHeight + superGap) - 3 : 1
+  // Ballık (süper) kutuları: gerçek kovanlarda olduğu gibi gövdeyle aynı
+  // genişlikte, çatının altına, ana gövdenin üstüne oturan kutular.
+  const gold = { body: '#fbbf24', shade: '#d69e0a', dark: '#a16207', line: '#78350f' }
+  const superHeight = 17
+  const roofShift = supersToShow * superHeight // çatıyı bu kadar yukarı kaydırıyoruz
+  const bodyTop = 28 // ana gövdenin sabit üst noktası
+  const minY = -roofShift
   const viewBoxHeight = 86 - minY
 
   return (
@@ -25,43 +27,53 @@ export default function HiveCard({ hive, onClick }) {
         className="w-full transition-transform duration-150 group-hover:scale-105"
         style={{ maxWidth: 88 }}>
 
-        {/* ── BALLIKLAR (Süperler) ── */}
+        {/* ── ÇATI + KAPAK (yukarı kaymış) ── */}
+        <g transform={`translate(0, ${-roofShift})`}>
+          {/* Çatı gölge */}
+          <rect x="1" y="11" width="78" height="13" rx="3" fill={t.dark}/>
+          {/* Çatı ana */}
+          <rect x="1" y="9" width="78" height="11" rx="3" fill={t.shade}/>
+          {/* Çatı üst parlak şerit */}
+          <rect x="1" y="9" width="78" height="4" rx="3" fill={t.body}/>
+          {/* Çatı yan çıtalar */}
+          <rect x="1"  y="9" width="6" height="11" rx="1" fill={t.dark}/>
+          <rect x="73" y="9" width="6" height="11" rx="1" fill={t.dark}/>
+
+          {/* Üçüncü kat (kapak) */}
+          <rect x="3" y="20" width="74" height="9" rx="2" fill={t.shade}/>
+          <rect x="3" y="20" width="74" height="3" rx="2" fill={t.body}/>
+          <rect x="3" y="20" width="4" height="9" rx="1" fill={t.dark}/>
+          <rect x="73" y="20" width="4" height="9" rx="1" fill={t.dark}/>
+        </g>
+
+        {/* ── BALLIKLAR (Süper kutuları) ── */}
         {Array.from({ length: supersToShow }).map((_, i) => {
-          const y = roofTop - (i + 1) * (superHeight + superGap)
+          const y = bodyTop - (supersToShow - i) * superHeight
+          const isLast = i === supersToShow - 1
           return (
             <g key={i}>
-              <rect x="4" y={y} width="72" height={superHeight} rx="2" fill="#ca8a04"/>
-              <rect x="4" y={y} width="72" height="3" rx="2" fill="#eab308"/>
-              <rect x="4" y={y} width="5" height={superHeight} rx="1" fill="#a16207"/>
-              <rect x="71" y={y} width="5" height={superHeight} rx="1" fill="#a16207"/>
+              {/* Arka panel */}
+              <rect x="3" y={y} width="74" height={superHeight} rx="2" fill={gold.dark}/>
+              {/* Sol / sağ çıta */}
+              <rect x="3"  y={y} width="6" height={superHeight} rx="1" fill={gold.shade}/>
+              <rect x="71" y={y} width="6" height={superHeight} rx="1" fill={gold.shade}/>
+              {/* Orta panel */}
+              <rect x="9" y={y} width="62" height={superHeight} rx="1" fill={gold.shade}/>
+              {/* Üst parlak kenar */}
+              <rect x="3" y={y} width="74" height="3" rx="1" fill={gold.body}/>
+              {/* Ayraç çizgisi (kutular arası) */}
+              {!isLast && <rect x="3" y={y + superHeight - 1} width="74" height="1" fill={gold.line} opacity="0.6"/>}
             </g>
           )
         })}
         {superCount > 3 && (
           <g>
-            <circle cx="72" cy={minY + 7} r="7" fill="#eab308" stroke="#78350f" strokeWidth="1"/>
-            <text x="72" y={minY + 10} textAnchor="middle" fontSize="7.5" fontWeight="800" fill="#3b2400">
+            <circle cx="71" cy={-roofShift + 6} r="7" fill={gold.body} stroke={gold.line} strokeWidth="1"/>
+            <text x="71" y={-roofShift + 9} textAnchor="middle" fontSize="7.5" fontWeight="800" fill="#3b2400">
               +{superCount - 3}
             </text>
           </g>
         )}
-
-        {/* ── ÇATI ── */}
-        {/* Çatı gölge */}
-        <rect x="1" y="11" width="78" height="13" rx="3" fill={t.dark}/>
-        {/* Çatı ana */}
-        <rect x="1" y="9" width="78" height="11" rx="3" fill={t.shade}/>
-        {/* Çatı üst parlak şerit */}
-        <rect x="1" y="9" width="78" height="4" rx="3" fill={t.body}/>
-        {/* Çatı yan çıtalar */}
-        <rect x="1"  y="9" width="6" height="11" rx="1" fill={t.dark}/>
-        <rect x="73" y="9" width="6" height="11" rx="1" fill={t.dark}/>
-
-        {/* ── ÜÇÜNCÜ KAT (kapak) ── */}
-        <rect x="3" y="20" width="74" height="9" rx="2" fill={t.shade}/>
-        <rect x="3" y="20" width="74" height="3" rx="2" fill={t.body}/>
-        <rect x="3" y="20" width="4" height="9" rx="1" fill={t.dark}/>
-        <rect x="73" y="20" width="4" height="9" rx="1" fill={t.dark}/>
 
         {/* ── ANA GÖVDE ── */}
         {/* Arka panel */}
