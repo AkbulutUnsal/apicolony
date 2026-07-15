@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useWorker } from '../hooks/useWorker'
@@ -10,6 +11,7 @@ const EMOJIS = ['👤','👨‍🌾','👩‍🌾','🧑‍🌾','👨‍💼','
 const COLORS = ['#f5c518','#27ae60','#3498db','#e74c3c','#9b59b6','#e67e22','#1abc9c','#e91e8c']
 
 export default function WhoIsWorkingPage() {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
   const { selectWorker, activeWorker } = useWorker()
   const navigate = useNavigate()
@@ -48,10 +50,10 @@ export default function WhoIsWorkingPage() {
     setChecking(true)
     try {
       await selectWorker(selected, password)
-      toast.success(`Hoş geldin, ${selected.full_name}!`)
+      toast.success(`${t('who_working.welcome')}, ${selected.full_name}!`)
       navigate('/dashboard')
     } catch (err) {
-      toast.error(err.message || 'Şifre hatalı')
+      toast.error(err.message || t('who_working.wrong_password'))
     } finally {
       setChecking(false)
     }
@@ -59,21 +61,21 @@ export default function WhoIsWorkingPage() {
 
   async function addWorker() {
     if (!newWorker.full_name || !newWorker.pin_or_pass) {
-      toast.error('İsim ve şifre zorunlu')
+      toast.error(t('who_working.error_name_pass_required'))
       return
     }
     const { data, error } = await supabase.from('workers').insert({
       ...newWorker,
       owner_id: user.id
     }).select().single()
-    if (error) { toast.error('Eklenemedi'); return }
+    if (error) { toast.error(t('hive_tabs.error_add_failed')); return }
     setWorkers(prev => [...prev, data])
     setShowAdd(false)
     setNewWorker({ full_name: '', role: 'yardimci', pin_or_pass: '', avatar_emoji: '👤', avatar_color: '#f5c518' })
-    toast.success(`${data.full_name} eklendi!`)
+    toast.success(`${data.full_name} ${t('who_working.added_suffix')}`)
   }
 
-  const roleLabel = { yardimci: 'Yardımcı Arıcı', cirak: 'Çırak', sofor: 'Şoför' }
+  const roleLabel = { yardimci: t('who_working.role_assistant'), cirak: t('who_working.role_apprentice'), sofor: t('who_working.role_driver') }
 
   return (
     <div className="min-h-screen bg-dark-400 flex flex-col items-center justify-center p-6">
@@ -81,8 +83,8 @@ export default function WhoIsWorkingPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <HexLogo size={52} className="mx-auto mb-4" />
-          <h1 className="text-2xl font-black text-gold">Kim Çalışıyor?</h1>
-          <p className="text-sm text-gray-400 mt-1">Çalışmaya başlamak için profilinizi seçin</p>
+          <h1 className="text-2xl font-black text-gold">{t('who_working.title')}</h1>
+          <p className="text-sm text-gray-400 mt-1">{t('who_working.subtitle')}</p>
         </div>
 
         {/* Şifre modal */}
@@ -96,7 +98,7 @@ export default function WhoIsWorkingPage() {
               <form onSubmit={handleWorkerLogin}>
                 <input
                   type="password"
-                  placeholder="Şifrenizi girin"
+                  placeholder={t('who_working.enter_password')}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="mb-4 text-center text-lg tracking-widest"
@@ -104,9 +106,9 @@ export default function WhoIsWorkingPage() {
                 />
                 <div className="flex gap-2">
                   <button type="button" className="btn-ghost flex-1 justify-center"
-                    onClick={() => setSelected(null)}>İptal</button>
+                    onClick={() => setSelected(null)}>{t('common.cancel')}</button>
                   <button type="submit" className="btn-gold flex-1 justify-center" disabled={checking}>
-                    {checking ? 'Kontrol...' : 'Giriş Yap'}
+                    {checking ? t('who_working.checking') : t('who_working.login_btn')}
                   </button>
                 </div>
               </form>
@@ -131,9 +133,9 @@ export default function WhoIsWorkingPage() {
               </div>
               <div className="text-center">
                 <div className="text-sm font-bold text-white truncate max-w-[90px]">
-                  {profile?.full_name || 'Hesap Sahibi'}
+                  {profile?.full_name || t('who_working.account_owner')}
                 </div>
-                <div className="text-[10px] text-gold mt-0.5">Arıcı</div>
+                <div className="text-[10px] text-gold mt-0.5">{t('who_working.beekeeper')}</div>
               </div>
             </button>
 
@@ -151,7 +153,7 @@ export default function WhoIsWorkingPage() {
                   <div className="text-[10px] text-gray-400 mt-0.5">{roleLabel[w.role] || w.role}</div>
                   {w.last_seen_at && (
                     <div className="text-[9px] text-gray-500 mt-0.5">
-                      {formatLastSeen(w.last_seen_at)}
+                      {formatLastSeen(w.last_seen_at, t)}
                     </div>
                   )}
                 </div>
@@ -165,7 +167,7 @@ export default function WhoIsWorkingPage() {
                 style={{ background: '#1e1e1e', border: '2px dashed rgba(255,255,255,0.15)' }}>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl text-gray-500"
                   style={{ background: '#2e2e2e' }}>+</div>
-                <div className="text-sm font-bold text-gray-500">Çalışan Ekle</div>
+                <div className="text-sm font-bold text-gray-500">{t('who_working.add_worker')}</div>
               </button>
             )}
           </div>
@@ -174,28 +176,28 @@ export default function WhoIsWorkingPage() {
         {/* Çalışan ekle formu - sadece admin */}
         {isAdmin && showAdd && (
           <div className="card mb-6">
-            <h3 className="font-black mb-4">Yeni Çalışan</h3>
+            <h3 className="font-black mb-4">{t('who_working.new_worker')}</h3>
             <div className="space-y-3">
               <div>
-                <label className="field-label">Ad Soyad</label>
+                <label className="field-label">{t('who_working.full_name')}</label>
                 <input placeholder="Ahmet Yılmaz" value={newWorker.full_name}
                   onChange={e => setNewWorker(p => ({ ...p, full_name: e.target.value }))} />
               </div>
               <div>
-                <label className="field-label">Görev</label>
+                <label className="field-label">{t('who_working.role_label')}</label>
                 <select value={newWorker.role} onChange={e => setNewWorker(p => ({ ...p, role: e.target.value }))}>
-                  <option value="yardimci">Yardımcı Arıcı</option>
-                  <option value="cirak">Çırak</option>
-                  <option value="sofor">Şoför</option>
+                  <option value="yardimci">{t('who_working.role_assistant')}</option>
+                  <option value="cirak">{t('who_working.role_apprentice')}</option>
+                  <option value="sofor">{t('who_working.role_driver')}</option>
                 </select>
               </div>
               <div>
-                <label className="field-label">Şifre</label>
-                <input type="password" placeholder="En az 4 karakter" value={newWorker.pin_or_pass}
+                <label className="field-label">{t('who_working.password')}</label>
+                <input type="password" placeholder={t('who_working.min_4_chars')} value={newWorker.pin_or_pass}
                   onChange={e => setNewWorker(p => ({ ...p, pin_or_pass: e.target.value }))} />
               </div>
               <div>
-                <label className="field-label">Avatar Emoji</label>
+                <label className="field-label">{t('who_working.avatar_emoji')}</label>
                 <div className="flex gap-2 flex-wrap mt-1">
                   {EMOJIS.map(e => (
                     <button key={e} onClick={() => setNewWorker(p => ({ ...p, avatar_emoji: e }))}
@@ -207,7 +209,7 @@ export default function WhoIsWorkingPage() {
                 </div>
               </div>
               <div>
-                <label className="field-label">Renk</label>
+                <label className="field-label">{t('who_working.color')}</label>
                 <div className="flex gap-2 flex-wrap mt-1">
                   {COLORS.map(c => (
                     <button key={c} onClick={() => setNewWorker(p => ({ ...p, avatar_color: c }))}
@@ -217,8 +219,8 @@ export default function WhoIsWorkingPage() {
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
-                <button className="btn-ghost flex-1 justify-center" onClick={() => setShowAdd(false)}>İptal</button>
-                <button className="btn-gold flex-1 justify-center" onClick={addWorker}>Kaydet</button>
+                <button className="btn-ghost flex-1 justify-center" onClick={() => setShowAdd(false)}>{t('common.cancel')}</button>
+                <button className="btn-gold flex-1 justify-center" onClick={addWorker}>{t('common.save')}</button>
               </div>
             </div>
           </div>
@@ -229,7 +231,7 @@ export default function WhoIsWorkingPage() {
           <div className="text-center">
             <button onClick={() => navigate('/calisanlar')}
               className="text-sm text-gray-400 hover:text-gold transition-colors">
-              ⚙️ Çalışanları Yönet
+              ⚙️ {t('who_working.manage_workers')}
             </button>
           </div>
         )}
@@ -238,12 +240,12 @@ export default function WhoIsWorkingPage() {
   )
 }
 
-function formatLastSeen(dateStr) {
+function formatLastSeen(dateStr, t) {
   const diff = Date.now() - new Date(dateStr)
   const mins = Math.floor(diff / 60000)
-  if (mins < 2) return 'Az önce aktif'
-  if (mins < 60) return `${mins}dk önce`
+  if (mins < 2) return t('who_working.active_now')
+  if (mins < 60) return `${mins}${t('who_working.min_ago_suffix')}`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}sa önce`
-  return `${Math.floor(hrs / 24)}g önce`
+  if (hrs < 24) return `${hrs}${t('who_working.hour_ago_suffix')}`
+  return `${Math.floor(hrs / 24)}${t('who_working.day_ago_suffix')}`
 }

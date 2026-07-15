@@ -1,25 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
 import HexLogo from '../components/ui/HexLogo'
 
-const QUICK_QUESTIONS = [
-  'Kritik kovanlarım için ne yapmalıyım?',
-  'Bu sezon bal hasatını artırmak için öneriler ver',
-  'Varroa mücadelesi için en iyi yöntemler nelerdir?',
-  'Ana arı yenileme zamanını nasıl belirlerim?',
-  'Kışlatma hazırlıkları için ne yapmalıyım?',
-  'Oğul verme belirtileri nelerdir?',
-]
+const LANG_NAMES = { tr: 'Türkçe', ka: 'ქართული (Georgian)', en: 'English', ru: 'Русский' }
 
 export default function AIAdvisorPage() {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
+  const QUICK_QUESTIONS = t('ai_advisor.quick_questions', { returnObjects: true })
   const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: '🐝 Merhaba! Ben ApiColony\'in yapay zeka danışmanıyım. Kovanlarınızın verilerine erişimim var — size özel öneriler verebilirim.\n\nNe sormak istersiniz?'
-    }
+    { role: 'assistant', content: t('ai_advisor.welcome_message') }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -64,9 +57,10 @@ export default function AIAdvisorPage() {
   }
 
   function buildSystemPrompt(ctx) {
+    const langName = LANG_NAMES[i18n.language] || 'Türkçe'
     if (!ctx || ctx.totalHives === 0) {
-      return `Sen ApiColony arı yönetim sisteminin yapay zeka danışmanısın. 
-Kullanıcının henüz kovan verisi yok. Genel arıcılık tavsiyeleri ver. Türkçe yanıtla.`
+      return `Sen ApiColony arı yönetim sisteminin yapay zeka danışmanısın.
+Kullanıcının henüz kovan verisi yok. Genel arıcılık tavsiyeleri ver. Yanıtı ${langName} dilinde ver.`
     }
     return `Sen ApiColony arı yönetim sisteminin yapay zeka danışmanısın. Kullanıcı bir arıcı.
 
@@ -81,8 +75,8 @@ KOVAN DETAYLARI:
 ${ctx.hiveList}
 
 KURALLAR:
-- Türkçe yanıtla, sıcak ve profesyonel ol
-- Verilere atıfta bulun (örn. "A-3 kovanınız için...")  
+- Yanıtı ${langName} dilinde ver, sıcak ve profesyonel ol
+- Verilere atıfta bulun (örn. "A-3 kovanınız için...")
 - Pratik ve uygulanabilir öneriler ver
 - Gerektiğinde madde madde listele
 - Özlü tut, çok uzun olmasın`
@@ -107,12 +101,12 @@ KURALLAR:
       })
 
       if (error) throw new Error(error.message)
-      const reply = data?.content?.[0]?.text || 'Yanıt alınamadı.'
+      const reply = data?.content?.[0]?.text || t('ai_advisor.no_reply')
       setMessages(prev => [...prev, { role: 'assistant', content: reply }])
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `⚠️ Hata: ${err.message}\n\nEdge Function kurulumu gerekiyor — README'deki adımları takip edin.`
+        content: `⚠️ ${t('ai_advisor.error_label')}: ${err.message}\n\n${t('ai_advisor.edge_function_hint')}`
       }])
     } finally {
       setLoading(false)
@@ -135,11 +129,11 @@ KURALLAR:
             🤖
           </div>
           <div>
-            <h1 className="text-lg font-black">AI Danışman</h1>
+            <h1 className="text-lg font-black">{t('ai_advisor.title')}</h1>
             <p className="text-xs text-gray-400">
               {hiveContext
-                ? `${hiveContext.totalHives} kovan verisi yüklendi · ${hiveContext.season} modu`
-                : 'Veriler yükleniyor...'}
+                ? `${hiveContext.totalHives} ${t('ai_advisor.hive_data_loaded')} · ${seasonLabel(hiveContext.season, t)}`
+                : t('ai_advisor.loading_data')}
             </p>
           </div>
           {hiveContext && (
@@ -147,13 +141,13 @@ KURALLAR:
               {hiveContext.criticalCount > 0 && (
                 <span className="text-xs px-2 py-1 rounded-lg font-bold"
                   style={{ background: 'rgba(231,76,60,0.15)', color: '#e74c3c', border: '1px solid rgba(231,76,60,0.3)' }}>
-                  🔴 {hiveContext.criticalCount} kritik
+                  🔴 {hiveContext.criticalCount} {t('reports.health_critical')}
                 </span>
               )}
               {hiveContext.overdueCount > 0 && (
                 <span className="text-xs px-2 py-1 rounded-lg font-bold"
                   style={{ background: 'rgba(230,126,34,0.15)', color: '#e67e22', border: '1px solid rgba(230,126,34,0.3)' }}>
-                  🟡 {hiveContext.overdueCount} bakım
+                  🟡 {hiveContext.overdueCount} {t('reports.health_maintenance')}
                 </span>
               )}
             </div>
@@ -227,7 +221,7 @@ KURALLAR:
         <div className="flex gap-2 pb-2 flex-shrink-0">
           <textarea value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Kovanlarınız hakkında soru sorun... (Enter ile gönder)"
+            placeholder={t('ai_advisor.input_placeholder')}
             rows={1} disabled={loading}
             className="flex-1 resize-none"
             style={{ minHeight: 44, maxHeight: 120 }}/>
@@ -249,4 +243,14 @@ function getSeason() {
   if (m >= 6 && m <= 8) return 'Yaz'
   if (m >= 9 && m <= 11) return 'Sonbahar'
   return 'Kış'
+}
+
+function seasonLabel(season, t) {
+  const map = {
+    'İlkbahar': t('hive_tabs.season_spring'),
+    'Yaz': t('hive_tabs.season_summer'),
+    'Sonbahar': t('hive_tabs.season_autumn'),
+    'Kış': t('ai_advisor.season_winter'),
+  }
+  return map[season] || season
 }
