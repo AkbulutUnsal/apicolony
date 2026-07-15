@@ -1,5 +1,7 @@
 export default function HiveCard({ hive, onClick }) {
   const status = getStatus(hive)
+  const superCount = hive.super_count || 0
+  const supersToShow = Math.min(superCount, 3)
 
   const themes = {
     new:      { body: '#c0392b', shade: '#962d22', dark: '#7b2418', entry: '#5c1a10', wood: '#6b4226', woodDark: '#4a2e14', text: '#ffd5d0' },
@@ -10,11 +12,39 @@ export default function HiveCard({ hive, onClick }) {
   }
   const t = themes[status] || themes.new
 
+  // ── BALLIK (süper) katmanları için üstte ekstra alan ──
+  const roofTop = 9
+  const superHeight = 9
+  const superGap = 1
+  const minY = supersToShow > 0 ? roofTop - supersToShow * (superHeight + superGap) - 3 : 1
+  const viewBoxHeight = 86 - minY
+
   return (
     <div className="hive-card group" onClick={onClick}>
-      <svg viewBox="0 0 80 86" xmlns="http://www.w3.org/2000/svg"
+      <svg viewBox={`0 ${minY} 80 ${viewBoxHeight}`} xmlns="http://www.w3.org/2000/svg"
         className="w-full transition-transform duration-150 group-hover:scale-105"
         style={{ maxWidth: 88 }}>
+
+        {/* ── BALLIKLAR (Süperler) ── */}
+        {Array.from({ length: supersToShow }).map((_, i) => {
+          const y = roofTop - (i + 1) * (superHeight + superGap)
+          return (
+            <g key={i}>
+              <rect x="4" y={y} width="72" height={superHeight} rx="2" fill="#ca8a04"/>
+              <rect x="4" y={y} width="72" height="3" rx="2" fill="#eab308"/>
+              <rect x="4" y={y} width="5" height={superHeight} rx="1" fill="#a16207"/>
+              <rect x="71" y={y} width="5" height={superHeight} rx="1" fill="#a16207"/>
+            </g>
+          )
+        })}
+        {superCount > 3 && (
+          <g>
+            <circle cx="72" cy={minY + 7} r="7" fill="#eab308" stroke="#78350f" strokeWidth="1"/>
+            <text x="72" y={minY + 10} textAnchor="middle" fontSize="7.5" fontWeight="800" fill="#3b2400">
+              +{superCount - 3}
+            </text>
+          </g>
+        )}
 
         {/* ── ÇATI ── */}
         {/* Çatı gölge */}

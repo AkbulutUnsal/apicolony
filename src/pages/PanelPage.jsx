@@ -24,8 +24,33 @@ export default function PanelPage() {
       supabase.from('hives').select('*').eq('user_id', user.id).eq('status', 'aktif').order('created_at'),
       supabase.from('apiaries').select('id, name').eq('user_id', user.id).order('name')
     ])
-    if (hivRes.error) toast.error('Kovanlar yüklenemedi')
-    else setHives(hivRes.data || [])
+    if (hivRes.error) {
+      toast.error('Kovanlar yüklenemedi')
+      setApiaries(apRes.data || [])
+      setLoading(false)
+      return
+    }
+
+    const hiveList = hivRes.data || []
+    const hiveIds = hiveList.map(h => h.id)
+
+    let superCounts = {}
+    if (hiveIds.length > 0) {
+      const { data: supersData, error: supersError } = await supabase
+        .from('supers')
+        .select('hive_id')
+        .in('hive_id', hiveIds)
+      if (supersError) {
+        toast.error('Ballık bilgisi yüklenemedi')
+      } else {
+        (supersData || []).forEach(s => {
+          superCounts[s.hive_id] = (superCounts[s.hive_id] || 0) + 1
+        })
+      }
+    }
+
+    const hivesWithSupers = hiveList.map(h => ({ ...h, super_count: superCounts[h.id] || 0 }))
+    setHives(hivesWithSupers)
     setApiaries(apRes.data || [])
     setLoading(false)
   }
