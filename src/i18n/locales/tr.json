@@ -39,7 +39,6 @@
     "hive": "Kovan",
     "hives": "Kovanlar"
   },
-
   "nav": {
     "dashboard": "📊 Dashboard",
     "hives": "🐝 Kovanlar",
@@ -58,7 +57,6 @@
     "settings": "Ayarlar",
     "profile": "Profil"
   },
-
   "auth": {
     "login_title": "ApiColony'e Giriş Yap",
     "login_subtitle": "Hesabınıza giriş yapmak için bilgilerinizi girin.",
@@ -80,7 +78,6 @@
     "register_error": "Kayıt başarısız",
     "password_min": "En az 6 karakter"
   },
-
   "who_is_working": {
     "title": "Kim Çalışıyor?",
     "subtitle": "Devam etmek için hesabınızı seçin",
@@ -101,7 +98,6 @@
     "add_btn": "Çalışanı Ekle",
     "adding": "Ekleniyor..."
   },
-
   "dashboard": {
     "greeting": "Merhaba, {{name}} 👋",
     "total_hives": "Toplam Kovan",
@@ -118,7 +114,6 @@
     "go_to_hive": "Kovana Git →",
     "no_activity": "Henüz aktivite yok"
   },
-
   "apiaries": {
     "title": "Arılıklar",
     "subtitle_count": "{{count}} arılık · {{hives}} aktif kovan",
@@ -153,7 +148,6 @@
     "nomadic": "Gezginci",
     "gps_recorded": "Kayıtlı ✓"
   },
-
   "feeding": {
     "title": "Besleme Kayıtları",
     "subtitle": "Bu ay {{count}} kayıt",
@@ -179,7 +173,6 @@
     "error_type": "Besleme türü seçin",
     "bulk_label": "(toplu)"
   },
-
   "treatment": {
     "title": "Tedavi Kayıtları",
     "subtitle": "{{count}} toplam kayıt",
@@ -218,7 +211,6 @@
     "severity_medium": "Orta",
     "severity_severe": "Ağır"
   },
-
   "harvest": {
     "title": "Hasat Kayıtları",
     "new_btn": "+ Yeni Hasat",
@@ -234,7 +226,6 @@
     "empty_title": "Henüz hasat kaydı yok",
     "empty_btn": "+ Hasat Ekle"
   },
-
   "batches": {
     "title": "Bal Partileri",
     "subtitle": "{{count}} parti · {{kg}} kg toplam",
@@ -277,7 +268,6 @@
     "hidden_success": "Gizlendi",
     "published_success": "Yayınlandı"
   },
-
   "finance": {
     "title": "Maliyet & Gelir",
     "subtitle": "Arılık finansal takibi",
@@ -308,7 +298,6 @@
     "income_added": "Gelir eklendi",
     "expense_added": "Gider eklendi"
   },
-
   "reports": {
     "title": "📋 Raporlar",
     "print_btn": "🖨️ PDF İndir / Yazdır",
@@ -319,19 +308,79 @@
     "tab_feeding": "🫙 Besleme",
     "tab_treatment": "💊 Tedavi",
     "tab_finance": "💰 Finans",
-    "total_hives": "Toplam Kovan",
-    "healthy": "Sağlıklı",
-    "needs_care": "Bakım Gerekli",
-    "honey_stock": "Bal Stoğu",
-    "total_harvest_stat": "Toplam Hasat",
-    "total_maintenance": "Toplam Bakım",
-    "disease_count": "Hastalık Kaydı",
-    "dormant": "Sönmüş Koloni",
-    "health_pie": "Kovan Sağlık Dağılımı",
-    "monthly_harvest": "Son 12 Aylık Hasat (kg)",
-    "no_harvest": "Hasat kaydı yok"
+    "kpi_total_hives": "Toplam Kovan",
+    "health_healthy": "Sağlıklı",
+    "kpi_needs_maintenance": "Bakım Gerekli",
+    "kpi_honey_stock": "Bal Stoğu",
+    "kpi_total_harvest": "Toplam Hasat",
+    "kpi_total_maintenance": "Toplam Bakım",
+    "kpi_disease_count": "Hastalık Kaydı",
+    "kpi_dormant_colony": "Sönmüş Koloni",
+    "health_dormant": "Sönmüş",
+    "health_critical": "Kritik",
+    "health_maintenance": "Bakım",
+    "kpi_harvest_count": "Hasat Sayısı",
+    "kpi_avg_per_harvest": "Ortalama / Hasat",
+    "honey_type_other": "Diğer",
+    "unknown": "Bilinmiyor",
+    "kpi_total_feeding": "Toplam Besleme",
+    "kpi_this_month": "Bu Ay",
+    "kpi_total_cost": "Top. Maliyet",
+    "kpi_total_treatment": "Toplam Tedavi",
+    "kpi_distinct_disease": "Farklı Hastalık",
+    "kpi_total_income": "Toplam Gelir",
+    "kpi_total_expense": "Toplam Gider",
+    "kpi_profit_loss": "Kâr / Zarar",
+    "kpi_avg_kg_price": "Ort. Kg Fiyatı",
+    "kpi_maintained_hives": "Bakımlı Kovan",
+    "label_harvest_short": "Hasat",
+    "chart_health_distribution_title": "Kovan Sağlık Dağılımı",
+    "chart_last12_harvest_title": "Son 12 Aylık Hasat (kg)",
+    "chart_monthly_harvest_title": "Aylık Hasat Grafiği",
+    "chart_honey_type_title": "Bal Çeşidi Dağılımı",
+    "table_top_harvest_hives_title": "En Çok Hasat Veren Kovanlar",
+    "chart_health_pie_title": "Sağlık Dağılımı",
+    "chart_monthly_maintenance_title": "Aylık Bakım Sayısı",
+    "table_recent_maintenance_title": "Son Bakım Kayıtları",
+    "chart_feeding_type_title": "Besleme Türü Dağılımı",
+    "table_recent_feeding_title": "Son Besleme Kayıtları",
+    "chart_disease_pest_title": "Hastalık / Zararlı Dağılımı",
+    "table_recent_treatment_title": "Son Tedavi Kayıtları",
+    "section_recent_expenses": "Son Giderler",
+    "section_recent_incomes": "Son Gelirler",
+    "empty_no_harvest": "Hasat kaydı yok",
+    "empty_no_record": "Kayıt yok",
+    "empty_no_treatment": "Tedavi kaydı yok",
+    "empty_no_feeding": "Besleme kaydı yok",
+    "empty_no_maintenance": "Bakım kaydı yok",
+    "empty_no_disease": "Hastalık kaydı yok",
+    "empty_all_maintained": "Tüm kovanlar bakımlı!",
+    "col_hive": "Kovan",
+    "col_ratio": "Oran",
+    "col_status": "Durum",
+    "col_brood": "Kuluçka",
+    "col_date": "Tarih",
+    "col_season": "Sezon",
+    "col_colony": "Koloni",
+    "col_honey_frames": "Bal Çerçevesi",
+    "col_type": "Tür",
+    "col_amount": "Miktar",
+    "col_cost": "Maliyet",
+    "col_disease": "Hastalık",
+    "col_product": "Ürün",
+    "col_severity": "Şiddet",
+    "section_disease_records_title": "Hastalık Kayıtları",
+    "section_pending_maintenance_title": "Bakım Bekleyen Kovanlar",
+    "unit_hives": "kovan",
+    "unit_maintenance": "bakım",
+    "unit_times": "kez",
+    "severity_severe": "Ağır",
+    "severity_moderate": "Orta",
+    "severity_mild": "Hafif",
+    "colony_strong": "Güçlü",
+    "colony_weak": "Zayıf",
+    "colony_medium": "Orta"
   },
-
   "public_batch": {
     "not_found_title": "Parti Bulunamadı",
     "not_found_desc": "Bu QR kodu geçersiz veya yayından kaldırılmış.",
@@ -353,7 +402,6 @@
     "brand": "🐝 ApiColony",
     "brand_sub": "Kovandan Kavanoza"
   },
-
   "workers": {
     "title": "Çalışan Yönetimi",
     "new_btn": "+ Yeni Çalışan",
@@ -364,7 +412,6 @@
     "passive": "Pasif",
     "confirm_delete": "Bu çalışanı silmek istiyor musunuz?"
   },
-
   "hive_form": {
     "title": "Kovan Bilgi Formu",
     "back": "← Panele Geri Dön",
@@ -391,7 +438,6 @@
     "saved": "Kovan kaydedildi",
     "archived": "Kovan arşivlendi"
   },
-
   "notifications": {
     "no_inspection": "{{hive}} hiç incelenmedi",
     "no_inspection_desc": "Bu kovana henüz bakım kaydı girilmedi.",

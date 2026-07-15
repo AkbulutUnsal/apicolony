@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/layout/Navbar'
@@ -11,6 +12,7 @@ import {
 const GOLD = '#f5c518', GREEN = '#27ae60', RED = '#e74c3c', ORANGE = '#e67e22', GRAY = '#666', BLUE = '#3498db'
 
 export default function ReportsPage() {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
   const navigate = useNavigate()
   const printRef = useRef()
@@ -82,7 +84,7 @@ export default function ReportsPage() {
 
   // Bal çeşidi dağılımı
   const honeyTypes = harvests.reduce((acc, h) => {
-    const type = h.honey_type || 'Diğer'
+    const type = h.honey_type || t('reports.honey_type_other')
     acc[type] = (acc[type] || 0) + (h.amount_kg || 0)
     return acc
   }, {})
@@ -91,10 +93,10 @@ export default function ReportsPage() {
 
   // Kovan sağlık dağılımı
   const healthPieData = [
-    { name: 'Sağlıklı', value: healthyHives, color: GREEN },
-    { name: 'Bakım', value: warningHives, color: ORANGE },
-    { name: 'Kritik', value: dangerHives, color: RED },
-    { name: 'Sönmüş', value: dormantHives, color: GRAY },
+    { name: t('reports.health_healthy'), value: healthyHives, color: GREEN },
+    { name: t('reports.health_maintenance'), value: warningHives, color: ORANGE },
+    { name: t('reports.health_critical'), value: dangerHives, color: RED },
+    { name: t('reports.health_dormant'), value: dormantHives, color: GRAY },
   ].filter(d => d.value > 0)
 
   // En çok hasat veren kovanlar
@@ -126,13 +128,13 @@ export default function ReportsPage() {
   )
 
   const TABS = [
-    { id: 'ozet',    label: '📊 Özet' },
-    { id: 'hasat',   label: '🍯 Hasat' },
-    { id: 'saglik',  label: '🐝 Sağlık' },
-    { id: 'bakim',   label: '🔧 Bakım' },
-    { id: 'besleme', label: '🫙 Besleme' },
-    { id: 'tedavi',  label: '💊 Tedavi' },
-    { id: 'finans',  label: '💰 Finans' },
+    { id: 'ozet',    label: t('reports.tab_summary') },
+    { id: 'hasat',   label: t('reports.tab_harvest') },
+    { id: 'saglik',  label: t('reports.tab_health') },
+    { id: 'bakim',   label: t('reports.tab_maintenance') },
+    { id: 'besleme', label: t('reports.tab_feeding') },
+    { id: 'tedavi',  label: t('reports.tab_treatment') },
+    { id: 'finans',  label: t('reports.tab_finance') },
   ]
 
   return (
@@ -142,23 +144,23 @@ export default function ReportsPage() {
         {/* Başlık */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-black">📋 Raporlar</h1>
+            <h1 className="text-2xl font-black">{t('reports.title')}</h1>
             <p className="text-gray-400 text-sm mt-0.5">
               {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} · {profile?.full_name}
             </p>
           </div>
           <button onClick={handlePrint}
             className="btn-gold flex items-center gap-2">
-            🖨️ PDF İndir / Yazdır
+            {t('reports.print_btn')}
           </button>
         </div>
 
         {/* Tabs */}
         <div className="flex overflow-x-auto mb-6 gap-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`tab-btn whitespace-nowrap ${activeTab === t.id ? 'active' : ''}`}>
-              {t.label}
+          {TABS.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`tab-btn whitespace-nowrap ${activeTab === tab.id ? 'active' : ''}`}>
+              {tab.label}
             </button>
           ))}
         </div>
@@ -169,14 +171,14 @@ export default function ReportsPage() {
             {/* KPI kartları */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { icon: '🐝', label: 'Toplam Kovan', value: totalHives, color: GOLD },
-                { icon: '✅', label: 'Sağlıklı', value: healthyHives, color: GREEN },
-                { icon: '⚠️', label: 'Bakım Gerekli', value: warningHives + dangerHives, color: ORANGE },
-                { icon: '🍯', label: 'Bal Stoğu', value: `${totalHoney.toFixed(1)} kg`, color: GOLD },
-                { icon: '📦', label: 'Toplam Hasat', value: `${totalHarvest.toFixed(1)} kg`, color: BLUE },
-                { icon: '🔧', label: 'Toplam Bakım', value: maintenance.length, color: GREEN },
-                { icon: '💊', label: 'Hastalık Kaydı', value: diseases.length, color: RED },
-                { icon: '⬛', label: 'Sönmüş Koloni', value: dormantHives, color: GRAY },
+                { icon: '🐝', label: t('reports.kpi_total_hives'), value: totalHives, color: GOLD },
+                { icon: '✅', label: t('reports.health_healthy'), value: healthyHives, color: GREEN },
+                { icon: '⚠️', label: t('reports.kpi_needs_maintenance'), value: warningHives + dangerHives, color: ORANGE },
+                { icon: '🍯', label: t('reports.kpi_honey_stock'), value: `${totalHoney.toFixed(1)} kg`, color: GOLD },
+                { icon: '📦', label: t('reports.kpi_total_harvest'), value: `${totalHarvest.toFixed(1)} kg`, color: BLUE },
+                { icon: '🔧', label: t('reports.kpi_total_maintenance'), value: maintenance.length, color: GREEN },
+                { icon: '💊', label: t('reports.kpi_disease_count'), value: diseases.length, color: RED },
+                { icon: '⬛', label: t('reports.kpi_dormant_colony'), value: dormantHives, color: GRAY },
               ].map(s => (
                 <div key={s.label} className="card flex flex-col gap-2">
                   <span className="text-2xl">{s.icon}</span>
@@ -189,14 +191,14 @@ export default function ReportsPage() {
             {/* Sağlık dağılımı + Hasat özeti */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="card">
-                <h2 className="font-black text-base mb-4">Kovan Sağlık Dağılımı</h2>
+                <h2 className="font-black text-base mb-4">{t('reports.chart_health_distribution_title')}</h2>
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie data={healthPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
                       {healthPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                     </Pie>
                     <Tooltip contentStyle={{ background: '#2e2e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff', fontSize: 12 }}
-                      formatter={(v, n) => [v + ' kovan', n]} />
+                      formatter={(v, n) => [v + ' ' + t('reports.unit_hives'), n]} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex flex-wrap gap-3 mt-2">
@@ -210,9 +212,9 @@ export default function ReportsPage() {
               </div>
 
               <div className="card">
-                <h2 className="font-black text-base mb-4">Son 12 Aylık Hasat (kg)</h2>
+                <h2 className="font-black text-base mb-4">{t('reports.chart_last12_harvest_title')}</h2>
                 {harvests.length === 0 ? (
-                  <div className="flex items-center justify-center h-40 text-gray-500 text-sm">Hasat kaydı yok</div>
+                  <div className="flex items-center justify-center h-40 text-gray-500 text-sm">{t('reports.empty_no_harvest')}</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={180}>
                     <BarChart data={monthlyHarvest} barSize={20}>
@@ -220,7 +222,7 @@ export default function ReportsPage() {
                       <XAxis dataKey="label" tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} tickLine={false} />
                       <Tooltip contentStyle={{ background: '#2e2e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff', fontSize: 12 }}
-                        formatter={v => [`${v} kg`, 'Hasat']} />
+                        formatter={v => [`${v} kg`, t('reports.label_harvest_short')]} />
                       <Bar dataKey="kg" fill={GOLD} radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -236,9 +238,9 @@ export default function ReportsPage() {
             {/* Özet kartlar */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { label: 'Toplam Hasat', value: `${totalHarvest.toFixed(1)} kg`, color: GOLD },
-                { label: 'Hasat Sayısı', value: harvests.length, color: BLUE },
-                { label: 'Ortalama / Hasat', value: harvests.length > 0 ? `${(totalHarvest / harvests.length).toFixed(1)} kg` : '0 kg', color: GREEN },
+                { label: t('reports.kpi_total_harvest'), value: `${totalHarvest.toFixed(1)} kg`, color: GOLD },
+                { label: t('reports.kpi_harvest_count'), value: harvests.length, color: BLUE },
+                { label: t('reports.kpi_avg_per_harvest'), value: harvests.length > 0 ? `${(totalHarvest / harvests.length).toFixed(1)} kg` : '0 kg', color: GREEN },
               ].map(s => (
                 <div key={s.label} className="card text-center">
                   <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
@@ -250,14 +252,14 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Aylık hasat grafiği */}
               <div className="card">
-                <h2 className="font-black text-base mb-4">Aylık Hasat Grafiği</h2>
+                <h2 className="font-black text-base mb-4">{t('reports.chart_monthly_harvest_title')}</h2>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={monthlyHarvest} barSize={24}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                     <XAxis dataKey="label" tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={{ background: '#2e2e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
-                      formatter={v => [`${v} kg`, 'Hasat']} />
+                      formatter={v => [`${v} kg`, t('reports.label_harvest_short')]} />
                     <Bar dataKey="kg" fill={GOLD} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -265,9 +267,9 @@ export default function ReportsPage() {
 
               {/* Bal çeşidi */}
               <div className="card">
-                <h2 className="font-black text-base mb-4">Bal Çeşidi Dağılımı</h2>
+                <h2 className="font-black text-base mb-4">{t('reports.chart_honey_type_title')}</h2>
                 {honeyTypeData.length === 0 ? (
-                  <div className="flex items-center justify-center h-40 text-gray-500 text-sm">Kayıt yok</div>
+                  <div className="flex items-center justify-center h-40 text-gray-500 text-sm">{t('reports.empty_no_record')}</div>
                 ) : (
                   <div className="space-y-2.5">
                     {honeyTypeData.map((h, i) => (
@@ -291,18 +293,18 @@ export default function ReportsPage() {
 
             {/* En çok hasat veren kovanlar */}
             <div className="card">
-              <h2 className="font-black text-base mb-4">En Çok Hasat Veren Kovanlar</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.table_top_harvest_hives_title')}</h2>
               {hiveHarvests.length === 0 ? (
-                <div className="text-gray-500 text-sm text-center py-8">Hasat kaydı yok</div>
+                <div className="text-gray-500 text-sm text-center py-8">{t('reports.empty_no_harvest')}</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                         <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">#</th>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Kovan</th>
-                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Toplam Hasat</th>
-                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Oran</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_hive')}</th>
+                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.kpi_total_harvest')}</th>
+                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_ratio')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -329,10 +331,10 @@ export default function ReportsPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Sağlıklı', value: healthyHives, color: GREEN, icon: '✅' },
-                { label: 'Bakım Gerekli', value: warningHives, color: ORANGE, icon: '⚠️' },
-                { label: 'Kritik', value: dangerHives, color: RED, icon: '🚨' },
-                { label: 'Sönmüş', value: dormantHives, color: GRAY, icon: '⬛' },
+                { label: t('reports.health_healthy'), value: healthyHives, color: GREEN, icon: '✅' },
+                { label: t('reports.kpi_needs_maintenance'), value: warningHives, color: ORANGE, icon: '⚠️' },
+                { label: t('reports.health_critical'), value: dangerHives, color: RED, icon: '🚨' },
+                { label: t('reports.health_dormant'), value: dormantHives, color: GRAY, icon: '⬛' },
               ].map(s => (
                 <div key={s.label} className="card text-center">
                   <div className="text-2xl mb-2">{s.icon}</div>
@@ -348,7 +350,7 @@ export default function ReportsPage() {
             {/* Sağlık pasta grafik */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="card">
-                <h2 className="font-black text-base mb-4">Sağlık Dağılımı</h2>
+                <h2 className="font-black text-base mb-4">{t('reports.chart_health_pie_title')}</h2>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie data={healthPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" stroke="none"
@@ -357,17 +359,17 @@ export default function ReportsPage() {
                       {healthPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                     </Pie>
                     <Tooltip contentStyle={{ background: '#2e2e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff', fontSize: 12 }}
-                      formatter={(v, n) => [v + ' kovan', n]} />
+                      formatter={(v, n) => [v + ' ' + t('reports.unit_hives'), n]} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Hastalık kayıtları */}
               <div className="card">
-                <h2 className="font-black text-base mb-4">Hastalık Kayıtları ({diseases.length})</h2>
+                <h2 className="font-black text-base mb-4">{t('reports.section_disease_records_title')} ({diseases.length})</h2>
                 {diseases.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-32 text-gray-500 text-sm">
-                    <span className="text-2xl mb-2">✅</span>Hastalık kaydı yok
+                    <span className="text-2xl mb-2">✅</span>{t('reports.empty_no_disease')}
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -376,7 +378,7 @@ export default function ReportsPage() {
                         <span className="text-red-400 text-lg">💊</span>
                         <div className="flex-1">
                           <div className="text-sm font-bold">{d.hives?.hive_no || '?'}</div>
-                          <div className="text-xs text-gray-400">{d.disease_name || 'Bilinmiyor'}</div>
+                          <div className="text-xs text-gray-400">{d.disease_name || t('reports.unknown')}</div>
                         </div>
                         <div className="text-xs text-gray-500">
                           {d.detected_date ? new Date(d.detected_date).toLocaleDateString('tr-TR') : ''}
@@ -390,20 +392,20 @@ export default function ReportsPage() {
 
             {/* Bakım bekleyen kovanlar tablosu */}
             <div className="card">
-              <h2 className="font-black text-base mb-4">Bakım Bekleyen Kovanlar ({delayedHives.length})</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.section_pending_maintenance_title')} ({delayedHives.length})</h2>
               {delayedHives.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-500 text-sm">
-                  <span className="text-2xl mb-2">✅</span>Tüm kovanlar bakımlı!
+                  <span className="text-2xl mb-2">✅</span>{t('reports.empty_all_maintained')}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Kovan</th>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Durum</th>
-                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Bal Stoğu</th>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Kuluçka</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_hive')}</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_status')}</th>
+                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.kpi_honey_stock')}</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_brood')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -416,7 +418,7 @@ export default function ReportsPage() {
                                 background: h.color_status === 'danger' ? '#e74c3c22' : '#e67e2222',
                                 color: h.color_status === 'danger' ? RED : ORANGE
                               }}>
-                              {h.color_status === 'danger' ? '🚨 Kritik' : '⚠️ Bakım'}
+                              {h.color_status === 'danger' ? '🚨 ' + t('reports.health_critical') : '⚠️ ' + t('reports.health_maintenance')}
                             </span>
                           </td>
                           <td className="py-2 px-3 text-right font-bold">{h.honey_stock_kg} kg</td>
@@ -436,9 +438,9 @@ export default function ReportsPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { label: 'Toplam Bakım', value: maintenance.length, color: GOLD },
-                { label: 'Bu Ay', value: maintenance.filter(m => m.inspection_date?.startsWith(new Date().toISOString().slice(0, 7))).length, color: GREEN },
-                { label: 'Bakımlı Kovan', value: hives.filter(h => h.color_status === 'healthy').length, color: BLUE },
+                { label: t('reports.kpi_total_maintenance'), value: maintenance.length, color: GOLD },
+                { label: t('reports.kpi_this_month'), value: maintenance.filter(m => m.inspection_date?.startsWith(new Date().toISOString().slice(0, 7))).length, color: GREEN },
+                { label: t('reports.kpi_maintained_hives'), value: hives.filter(h => h.color_status === 'healthy').length, color: BLUE },
               ].map(s => (
                 <div key={s.label} className="card text-center">
                   <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
@@ -449,14 +451,14 @@ export default function ReportsPage() {
 
             {/* Aylık bakım grafiği */}
             <div className="card">
-              <h2 className="font-black text-base mb-4">Aylık Bakım Sayısı</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.chart_monthly_maintenance_title')}</h2>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={maintenanceByMonth} barSize={28}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="label" tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: '#888', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={{ background: '#2e2e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
-                    formatter={v => [v + ' bakım', 'Bakım']} />
+                    formatter={v => [v + ' ' + t('reports.unit_maintenance'), t('reports.health_maintenance')]} />
                   <Bar dataKey="count" fill={GREEN} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -464,19 +466,19 @@ export default function ReportsPage() {
 
             {/* Son bakımlar tablosu */}
             <div className="card">
-              <h2 className="font-black text-base mb-4">Son Bakım Kayıtları</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.table_recent_maintenance_title')}</h2>
               {maintenance.length === 0 ? (
-                <div className="text-gray-500 text-sm text-center py-8">Bakım kaydı yok</div>
+                <div className="text-gray-500 text-sm text-center py-8">{t('reports.empty_no_maintenance')}</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tarih</th>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Kovan</th>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Sezon</th>
-                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Koloni</th>
-                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Bal Çerçevesi</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_date')}</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_hive')}</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_season')}</th>
+                        <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_colony')}</th>
+                        <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_honey_frames')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -493,7 +495,7 @@ export default function ReportsPage() {
                                 background: m.colony_strength === 'Güçlü' ? '#27ae6022' : m.colony_strength === 'Zayıf' ? '#e74c3c22' : '#e67e2222',
                                 color: m.colony_strength === 'Güçlü' ? GREEN : m.colony_strength === 'Zayıf' ? RED : ORANGE
                               }}>
-                              {m.colony_strength || '-'}
+                              {colonyStrengthLabel(m.colony_strength, t)}
                             </span>
                           </td>
                           <td className="py-2 px-3 text-right font-bold">{m.honey_frames ?? '-'}</td>
@@ -511,9 +513,9 @@ export default function ReportsPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { label: 'Toplam Besleme', value: feedings.length, color: GOLD },
-                { label: 'Bu Ay', value: feedings.filter(f => f.feed_date?.startsWith(new Date().toISOString().slice(0,7))).length, color: GREEN },
-                { label: 'Top. Maliyet', value: `${feedings.reduce((s,f)=>s+(f.cost||0),0).toLocaleString('tr-TR')} ₺`, color: ORANGE },
+                { label: t('reports.kpi_total_feeding'), value: feedings.length, color: GOLD },
+                { label: t('reports.kpi_this_month'), value: feedings.filter(f => f.feed_date?.startsWith(new Date().toISOString().slice(0,7))).length, color: GREEN },
+                { label: t('reports.kpi_total_cost'), value: `${feedings.reduce((s,f)=>s+(f.cost||0),0).toLocaleString('tr-TR')} ₺`, color: ORANGE },
               ].map(s => (
                 <div key={s.label} className="card text-center">
                   <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
@@ -522,9 +524,9 @@ export default function ReportsPage() {
               ))}
             </div>
             <div className="card">
-              <h2 className="font-black text-base mb-4">Besleme Türü Dağılımı</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.chart_feeding_type_title')}</h2>
               {feedings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 text-sm">Besleme kaydı yok</div>
+                <div className="text-center py-8 text-gray-500 text-sm">{t('reports.empty_no_feeding')}</div>
               ) : (
                 <div className="space-y-2.5">
                   {Object.entries(feedings.reduce((acc,f)=>{ acc[f.feed_type]=(acc[f.feed_type]||0)+1; return acc },{}))
@@ -534,24 +536,24 @@ export default function ReportsPage() {
                       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
                         <div className="h-full rounded-full" style={{ width:`${(count/feedings.length)*100}%`, background: GOLD }} />
                       </div>
-                      <div className="text-xs font-bold w-12 text-right">{count} kez</div>
+                      <div className="text-xs font-bold w-12 text-right">{count} {t('reports.unit_times')}</div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
             <div className="card">
-              <h2 className="font-black text-base mb-4">Son Besleme Kayıtları</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.table_recent_feeding_title')}</h2>
               {feedings.length === 0 ? (
-                <div className="text-center py-6 text-gray-500 text-sm">Kayıt yok</div>
+                <div className="text-center py-6 text-gray-500 text-sm">{t('reports.empty_no_record')}</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr style={{ borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tarih</th>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tür</th>
-                      <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Miktar</th>
-                      <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">Maliyet</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_date')}</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_type')}</th>
+                      <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_amount')}</th>
+                      <th className="text-right py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_cost')}</th>
                     </tr></thead>
                     <tbody>
                       {feedings.slice(0,20).map((f,i) => (
@@ -575,9 +577,9 @@ export default function ReportsPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { label: 'Toplam Tedavi', value: treatments.length, color: RED },
-                { label: 'Bu Ay', value: treatments.filter(t => t.treatment_date?.startsWith(new Date().toISOString().slice(0,7))).length, color: ORANGE },
-                { label: 'Farklı Hastalık', value: new Set(treatments.map(t=>t.disease_type)).size, color: GOLD },
+                { label: t('reports.kpi_total_treatment'), value: treatments.length, color: RED },
+                { label: t('reports.kpi_this_month'), value: treatments.filter(t => t.treatment_date?.startsWith(new Date().toISOString().slice(0,7))).length, color: ORANGE },
+                { label: t('reports.kpi_distinct_disease'), value: new Set(treatments.map(t=>t.disease_type)).size, color: GOLD },
               ].map(s => (
                 <div key={s.label} className="card text-center">
                   <div className="text-2xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
@@ -586,9 +588,9 @@ export default function ReportsPage() {
               ))}
             </div>
             <div className="card">
-              <h2 className="font-black text-base mb-4">Hastalık / Zararlı Dağılımı</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.chart_disease_pest_title')}</h2>
               {treatments.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 text-sm flex flex-col items-center gap-2"><span className="text-2xl">✅</span>Tedavi kaydı yok</div>
+                <div className="text-center py-8 text-gray-500 text-sm flex flex-col items-center gap-2"><span className="text-2xl">✅</span>{t('reports.empty_no_treatment')}</div>
               ) : (
                 <div className="space-y-2.5">
                   {Object.entries(treatments.reduce((acc,t)=>{ acc[t.disease_type]=(acc[t.disease_type]||0)+1; return acc },{}))
@@ -598,38 +600,38 @@ export default function ReportsPage() {
                       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
                         <div className="h-full rounded-full" style={{ width:`${(count/treatments.length)*100}%`, background: RED }} />
                       </div>
-                      <div className="text-xs font-bold w-12 text-right">{count} kez</div>
+                      <div className="text-xs font-bold w-12 text-right">{count} {t('reports.unit_times')}</div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
             <div className="card">
-              <h2 className="font-black text-base mb-4">Son Tedavi Kayıtları</h2>
+              <h2 className="font-black text-base mb-4">{t('reports.table_recent_treatment_title')}</h2>
               {treatments.length === 0 ? (
-                <div className="text-center py-6 text-gray-500 text-sm">Kayıt yok</div>
+                <div className="text-center py-6 text-gray-500 text-sm">{t('reports.empty_no_record')}</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr style={{ borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Tarih</th>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Kovan</th>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Hastalık</th>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Ürün</th>
-                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">Şiddet</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_date')}</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_hive')}</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_disease')}</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_product')}</th>
+                      <th className="text-left py-2 px-3 text-xs text-gray-400 font-bold">{t('reports.col_severity')}</th>
                     </tr></thead>
                     <tbody>
-                      {treatments.slice(0,20).map((t,i) => (
+                      {treatments.slice(0,20).map((tr,i) => (
                         <tr key={i} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
-                          <td className="py-2 px-3 text-gray-400 text-xs">{t.treatment_date ? new Date(t.treatment_date+'T00:00:00').toLocaleDateString('tr-TR') : '-'}</td>
-                          <td className="py-2 px-3 font-bold text-gold">{t.hives?.hive_no || '-'}</td>
-                          <td className="py-2 px-3">{t.disease_type}</td>
-                          <td className="py-2 px-3 text-gray-400">{t.product_name || '-'}</td>
+                          <td className="py-2 px-3 text-gray-400 text-xs">{tr.treatment_date ? new Date(tr.treatment_date+'T00:00:00').toLocaleDateString('tr-TR') : '-'}</td>
+                          <td className="py-2 px-3 font-bold text-gold">{tr.hives?.hive_no || '-'}</td>
+                          <td className="py-2 px-3">{tr.disease_type}</td>
+                          <td className="py-2 px-3 text-gray-400">{tr.product_name || '-'}</td>
                           <td className="py-2 px-3">
                             <span className="text-xs px-1.5 py-0.5 rounded font-bold" style={{
-                              background: t.severity==='Ağır'?'#e74c3c22':t.severity==='Orta'?'#e67e2222':'#27ae6022',
-                              color: t.severity==='Ağır'?RED:t.severity==='Orta'?ORANGE:GREEN
-                            }}>{t.severity||'-'}</span>
+                              background: tr.severity==='Ağır'?'#e74c3c22':tr.severity==='Orta'?'#e67e2222':'#27ae6022',
+                              color: tr.severity==='Ağır'?RED:tr.severity==='Orta'?ORANGE:GREEN
+                            }}>{severityLabel(tr.severity, t)}</span>
                           </td>
                         </tr>
                       ))}
@@ -652,10 +654,10 @@ export default function ReportsPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Toplam Gelir', value: `${totalInc.toLocaleString('tr-TR')} ₺`, color: GREEN },
-                  { label: 'Toplam Gider', value: `${totalExp.toLocaleString('tr-TR')} ₺`, color: RED },
-                  { label: 'Kâr / Zarar', value: `${profit>=0?'+':''}${profit.toLocaleString('tr-TR')} ₺`, color: profit>=0?GREEN:RED },
-                  { label: 'Ort. Kg Fiyatı', value: kgPrice>0?`${kgPrice.toFixed(0)} ₺/kg`:'—', color: GOLD },
+                  { label: t('reports.kpi_total_income'), value: `${totalInc.toLocaleString('tr-TR')} ₺`, color: GREEN },
+                  { label: t('reports.kpi_total_expense'), value: `${totalExp.toLocaleString('tr-TR')} ₺`, color: RED },
+                  { label: t('reports.kpi_profit_loss'), value: `${profit>=0?'+':''}${profit.toLocaleString('tr-TR')} ₺`, color: profit>=0?GREEN:RED },
+                  { label: t('reports.kpi_avg_kg_price'), value: kgPrice>0?`${kgPrice.toFixed(0)} ₺/kg`:'—', color: GOLD },
                 ].map(s => (
                   <div key={s.label} className="card text-center">
                     <div className="text-xl font-black mb-1" style={{ color: s.color }}>{s.value}</div>
@@ -665,8 +667,8 @@ export default function ReportsPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="card">
-                  <h2 className="font-black text-sm mb-3">Son Giderler</h2>
-                  {costs.length===0 ? <p className="text-sm text-gray-500 text-center py-4">Kayıt yok</p> : (
+                  <h2 className="font-black text-sm mb-3">{t('reports.section_recent_expenses')}</h2>
+                  {costs.length===0 ? <p className="text-sm text-gray-500 text-center py-4">{t('reports.empty_no_record')}</p> : (
                     <div className="space-y-1.5">
                       {costs.slice(0,8).map((c,i)=>(
                         <div key={i} className="flex justify-between items-center text-sm py-1.5" style={{ borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
@@ -681,8 +683,8 @@ export default function ReportsPage() {
                   )}
                 </div>
                 <div className="card">
-                  <h2 className="font-black text-sm mb-3">Son Gelirler</h2>
-                  {incomes.length===0 ? <p className="text-sm text-gray-500 text-center py-4">Kayıt yok</p> : (
+                  <h2 className="font-black text-sm mb-3">{t('reports.section_recent_incomes')}</h2>
+                  {incomes.length===0 ? <p className="text-sm text-gray-500 text-center py-4">{t('reports.empty_no_record')}</p> : (
                     <div className="space-y-1.5">
                       {incomes.slice(0,8).map((c,i)=>(
                         <div key={i} className="flex justify-between items-center text-sm py-1.5" style={{ borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
@@ -714,6 +716,20 @@ export default function ReportsPage() {
       `}</style>
     </div>
   )
+}
+
+function colonyStrengthLabel(strength, t) {
+  if (strength === 'Güçlü') return t('reports.colony_strong')
+  if (strength === 'Zayıf') return t('reports.colony_weak')
+  if (strength === 'Orta') return t('reports.colony_medium')
+  return '-'
+}
+
+function severityLabel(severity, t) {
+  if (severity === 'Ağır') return t('reports.severity_severe')
+  if (severity === 'Orta') return t('reports.severity_moderate')
+  if (severity === 'Hafif') return t('reports.severity_mild')
+  return '-'
 }
 
 function getLast12Months() {
