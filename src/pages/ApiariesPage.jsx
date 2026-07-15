@@ -75,7 +75,7 @@ export default function ApiariesPage() {
   }
 
   async function save() {
-    if (!form.name.trim()) { toast.error('t('apiaries.error_name')'); return }
+    if (!form.name.trim()) { toast.error(t('apiaries.error_name')); return }
     setSaving(true)
     const payload = {
       user_id: user.id,
@@ -97,7 +97,7 @@ export default function ApiariesPage() {
     }
     if (error) toast.error('Kaydedilemedi: ' + error.message)
     else {
-      toast.success(editing ? 't('apiaries.updated')' : 't('apiaries.saved')')
+      toast.success(editing ? t('apiaries.updated') : t('apiaries.saved'))
       setShowForm(false)
       fetchAll()
     }
@@ -108,8 +108,8 @@ export default function ApiariesPage() {
     if (!confirm(t('apiaries.confirm_delete'))) return
     setDeleting(id)
     const { error } = await supabase.from('apiaries').delete().eq('id', id)
-    if (error) toast.error('t('common.error_save') + ': '' + error.message)
-    else { toast.success('t('apiaries.deleted')'); fetchAll() }
+    if (error) toast.error(t('common.error_save') + ': ' + error.message)
+    else { toast.success(t('apiaries.deleted')); fetchAll() }
     setDeleting(null)
   }
 
@@ -141,7 +141,7 @@ export default function ApiariesPage() {
               <div className="flex items-center justify-between px-6 py-4"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 <h2 className="font-black text-base">
-                  {editing ? 'Arılığı Düzenle' : '{editing ? t('apiaries.edit_title') : t('apiaries.add_title')}'}
+                  {editing ? t('apiaries.edit_title') : t('apiaries.add_title')}
                 </h2>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
               </div>

@@ -332,7 +332,7 @@ function BatchCard({ batch, onQR, onTogglePublic, onDelete, onPreview }) {
             ? { background: 'rgba(39,174,96,0.15)', color: '#27ae60', border: '1px solid rgba(39,174,96,0.3)' }
             : { background: 'rgba(255,255,255,0.06)', color: '#888', border: '1px solid rgba(255,255,255,0.1)' }}
           onClick={onTogglePublic}>
-          {batch.is_public ? '{t('batches.published')}' : '{t('batches.publish_btn')}'}
+          {batch.is_public ? t('batches.published') : t('batches.publish_btn')}
         </button>
         <button className="btn-ghost text-xs px-3 py-1.5" style={{ color: '#e74c3c' }} onClick={onDelete}>🗑️</button>
       </div>
