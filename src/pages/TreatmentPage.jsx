@@ -10,6 +10,19 @@ const DISEASE_TYPES = [
   'Kireç Hastalığı', 'Taş Yavru', 'Güve', 'Küçük Kovan Böceği',
   'Arı Biti (Braula)', 'Genel Zayıflama', 'Bilinmeyen Belirti', 'Diğer'
 ]
+const DISEASE_TYPE_KEYS = {
+  'Varroa': 'treatment_page.disease_varroa', 'Nosema': 'treatment_page.disease_nosema',
+  'Amerikan Yavru Çürüklüğü': 'treatment_page.disease_afb', 'Avrupa Yavru Çürüklüğü': 'treatment_page.disease_efb',
+  'Kireç Hastalığı': 'treatment_page.disease_chalkbrood', 'Taş Yavru': 'treatment_page.disease_stonebrood',
+  'Güve': 'treatment_page.disease_wax_moth', 'Küçük Kovan Böceği': 'treatment_page.disease_shb',
+  'Arı Biti (Braula)': 'treatment_page.disease_bee_louse', 'Genel Zayıflama': 'treatment_page.disease_weakness',
+  'Bilinmeyen Belirti': 'treatment_page.disease_unknown', 'Diğer': 'reports.honey_type_other',
+}
+const METHOD_KEYS = {
+  'Damlama': 'treatment_page.method_drip', 'Buharlaştırma': 'treatment_page.method_vapor',
+  'Şerit / Fitil': 'treatment_page.method_strip', 'Toz': 'treatment_page.method_powder',
+  'Sprey': 'treatment_page.method_spray', 'Diğer': 'reports.honey_type_other',
+}
 const SEVERITY_LEVELS = ['Hafif', 'Orta', 'Ağır']
 const APPLICATION_METHODS = ['Damlama', 'Buharlaştırma', 'Şerit / Fitil', 'Toz', 'Sprey', 'Diğer']
 
@@ -103,9 +116,9 @@ export default function TreatmentPage() {
     }))
 
     const { error } = await supabase.from('treatment_records').insert(rows)
-    if (error) toast.error('Kaydedilemedi: ' + error.message)
+    if (error) toast.error(t('common.error_save') + ': ' + error.message)
     else {
-      toast.success(`${rows.length} kovana tedavi kaydedildi`)
+      toast.success(t('treatment.saved_multi', { count: rows.length }))
       setShowForm(false)
       setForm(EMPTY_FORM)
       fetchAll()
@@ -142,7 +155,7 @@ export default function TreatmentPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-black">{t('treatment.title')}</h1>
-            <p className="text-sm text-gray-400 mt-0.5">{records.length} toplam kayıt</p>
+            <p className="text-sm text-gray-400 mt-0.5">{records.length} {t('treatment_page.total_records')}</p>
           </div>
           <button className="btn-gold" onClick={() => { setForm(EMPTY_FORM); setShowForm(true) }}>
             {t('treatment.new_btn')}
@@ -158,11 +171,11 @@ export default function TreatmentPage() {
               <div className="font-bold text-sm text-red-400">{t('treatment.upcoming_title')}</div>
               <div className="text-xs text-gray-300 mt-1">
                 {upcoming.map(r => {
-                  const hiveNo = r.hives?.hive_no || (r.hive_id ? '?' : 'Toplu')
+                  const hiveNo = r.hives?.hive_no || (r.hive_id ? '?' : t('treatment_page.bulk_label'))
                   const days = Math.ceil((new Date(r.repeat_date) - today) / 86400000)
                   return (
                     <div key={r.id}>
-                      {hiveNo} — {r.disease_type} ({r.product_name || 'ürün belirtilmedi'}) · {days === 0 ? 'Bugün!' : `${days} gün sonra`}
+                      {hiveNo} — {t(DISEASE_TYPE_KEYS[r.disease_type] || 'reports.honey_type_other')} ({r.product_name || t('treatment_page.product_unspecified')}) · {days === 0 ? t('treatment_page.today_exclaim') : `${days} ${t('treatment_page.days_later')}`}
                     </div>
                   )
                 })}
@@ -173,9 +186,9 @@ export default function TreatmentPage() {
 
         {/* Özet */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <StatCard label="Toplam" value={records.length} icon="💊" />
-          <StatCard label="Yaklaşan Tekrar" value={upcoming.length} icon="🔔" alert={upcoming.length > 0} />
-          <StatCard label="Farklı Hastalık" value={diseaseTypes.length} icon="🔬" />
+          <StatCard label={t('reports.kpi_total_treatment')} value={records.length} icon="💊" />
+          <StatCard label={t('treatment_page.upcoming_repeat')} value={upcoming.length} icon="🔔" alert={upcoming.length > 0} />
+          <StatCard label={t('treatment.diff_diseases')} value={diseaseTypes.length} icon="🔬" />
         </div>
 
         {/* Form Modal */}
@@ -192,42 +205,42 @@ export default function TreatmentPage() {
               <div className="p-6 flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="field-label">Tedavi Tarihi</label>
+                    <label className="field-label">{t('hive_tabs.treatment_date')}</label>
                     <input type="date" value={form.treatment_date} onChange={e => set('treatment_date', e.target.value)} />
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.disease_type')}</label>
                     <select value={form.disease_type} onChange={e => set('disease_type', e.target.value)}>
-                      {DISEASE_TYPES.map(d => <option key={d}>{d}</option>)}
+                      {DISEASE_TYPES.map(d => <option key={d} value={d}>{t(DISEASE_TYPE_KEYS[d])}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.severity')}</label>
                     <select value={form.severity} onChange={e => set('severity', e.target.value)}>
-                      {SEVERITY_LEVELS.map(s => <option key={s}>{s}</option>)}
+                      {SEVERITY_LEVELS.map(s => <option key={s} value={s}>{severityOptLabel(s, t)}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.product')}</label>
                     <input value={form.product_name} onChange={e => set('product_name', e.target.value)}
-                      placeholder="örn. Apistan, Oxalic Acid" />
+                      placeholder={t('treatment_page.product_placeholder')} />
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.dose')}</label>
                     <input value={form.dose} onChange={e => set('dose', e.target.value)}
-                      placeholder="örn. 5ml, 2g" />
+                      placeholder={t('treatment_page.dose_placeholder')} />
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.method')}</label>
                     <select value={form.application_method} onChange={e => set('application_method', e.target.value)}>
-                      {APPLICATION_METHODS.map(m => <option key={m}>{m}</option>)}
+                      {APPLICATION_METHODS.map(m => <option key={m} value={m}>{t(METHOD_KEYS[m])}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.withdrawal')}</label>
                     <input type="number" min="0" value={form.withdrawal_days}
                       onChange={e => set('withdrawal_days', e.target.value)}
-                      placeholder="Hasat öncesi bekleme" />
+                      placeholder={t('treatment.withdrawal_placeholder')} />
                   </div>
                   <div>
                     <label className="field-label">{t('treatment.repeat_date')}</label>
@@ -236,16 +249,16 @@ export default function TreatmentPage() {
                   <div className="col-span-2">
                     <label className="field-label">{t('treatment.applied_by')}</label>
                     <input value={form.applied_by} onChange={e => set('applied_by', e.target.value)}
-                      placeholder="Ad soyad" />
+                      placeholder={t('treatment_page.full_name_placeholder')} />
                   </div>
                 </div>
 
                 {/* Arılık seçimi */}
                 {apiaries.length > 0 && (
                   <div>
-                    <label className="field-label">Arılık (opsiyonel)</label>
+                    <label className="field-label">{t('treatment_page.apiary_optional')}</label>
                     <select value={form.apiary_id} onChange={e => selectApiary(e.target.value)}>
-                      <option value="">— Arılık seçilmedi —</option>
+                      <option value="">{t('treatment_page.no_apiary_selected')}</option>
                       {apiaries.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
                   </div>
@@ -255,7 +268,7 @@ export default function TreatmentPage() {
                 {filteredHives.length > 0 && (
                   <div>
                     <label className="field-label">
-                      Kovanlar — Seçilmezse {form.apiary_id ? 'tüm arılık' : 'genel'} kayıt
+                      {t('treatment_page.hives_label')} — {form.apiary_id ? t('treatment_page.if_not_selected_apiary') : t('treatment_page.if_not_selected_general')}
                     </label>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-36 overflow-y-auto p-2 rounded-lg"
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -272,7 +285,7 @@ export default function TreatmentPage() {
                       ))}
                     </div>
                     {form.hive_ids.length > 0 && (
-                      <p className="text-xs text-red-400 mt-1">{form.hive_ids.length} kovan seçili</p>
+                      <p className="text-xs text-red-400 mt-1">{t('feeding.hives_selected', { count: form.hive_ids.length })}</p>
                     )}
                   </div>
                 )}
@@ -281,9 +294,9 @@ export default function TreatmentPage() {
                 {form.withdrawal_days > 0 && (
                   <div className="rounded-lg p-3 text-xs"
                     style={{ background: 'rgba(231,76,60,0.1)', border: '1px solid rgba(231,76,60,0.2)', color: '#e74c3c' }}>
-                    ⚠️ Bu tedavi sonrası <strong>{form.withdrawal_days} gün</strong> hasat yapılmamalıdır.
+                    ⚠️ {t('treatment_page.withdrawal_warning_prefix')} <strong>{form.withdrawal_days} {t('treatment_page.days_unit')}</strong> {t('treatment_page.withdrawal_warning_suffix')}
                     {form.treatment_date && (
-                      <span> Son hasat tarihi: <strong>
+                      <span> {t('treatment_page.last_harvest_date')}: <strong>
                         {new Date(new Date(form.treatment_date).getTime() + form.withdrawal_days * 86400000)
                           .toLocaleDateString('tr-TR')}
                       </strong></span>
@@ -292,16 +305,16 @@ export default function TreatmentPage() {
                 )}
 
                 <div>
-                  <label className="field-label">Notlar</label>
+                  <label className="field-label">{t('common.notes')}</label>
                   <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
-                    placeholder="Ek notlar..." className="resize-none" />
+                    placeholder={t('treatment_page.extra_notes')} className="resize-none" />
                 </div>
 
                 <div className="flex gap-2 pt-1">
                   <button className="btn-gold" onClick={save} disabled={saving}>
-                    {saving ? '⏳ Kaydediliyor...' : '💾 Kaydet'}
+                    {saving ? t('common.saving') : t('common.save')}
                   </button>
-                  <button className="btn-ghost" onClick={() => setShowForm(false)}>İptal</button>
+                  <button className="btn-ghost" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -312,7 +325,7 @@ export default function TreatmentPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           {apiaries.length > 0 && (
             <div className="flex gap-2 overflow-x-auto">
-              <FilterChip label="Tüm Arılıklar" active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
+              <FilterChip label={t('treatment_page.all_apiaries')} active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
               {apiaries.map(a => (
                 <FilterChip key={a.id} label={a.name} active={filterApiary === a.id} onClick={() => setFilterApiary(a.id)} />
               ))}
@@ -320,9 +333,9 @@ export default function TreatmentPage() {
           )}
           {diseaseTypes.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
-              <FilterChip label="Tüm Hastalıklar" active={filterDisease === 'all'} onClick={() => setFilterDisease('all')} variant="red" />
+              <FilterChip label={t('treatment.all_diseases')} active={filterDisease === 'all'} onClick={() => setFilterDisease('all')} variant="red" />
               {diseaseTypes.map(d => (
-                <FilterChip key={d} label={d} active={filterDisease === d} onClick={() => setFilterDisease(d)} variant="red" />
+                <FilterChip key={d} label={t(DISEASE_TYPE_KEYS[d] || 'reports.honey_type_other')} active={filterDisease === d} onClick={() => setFilterDisease(d)} variant="red" />
               ))}
             </div>
           )}
@@ -354,7 +367,15 @@ export default function TreatmentPage() {
   )
 }
 
+function severityOptLabel(s, t) {
+  if (s === 'Ağır') return t('reports.severity_severe')
+  if (s === 'Orta') return t('reports.severity_moderate')
+  if (s === 'Hafif') return t('reports.severity_mild')
+  return s
+}
+
 function TreatmentRow({ record }) {
+  const { t } = useTranslation()
   const severityColor = { Hafif: '#27ae60', Orta: '#e67e22', Ağır: '#e74c3c' }
   const color = severityColor[record.severity] || '#888'
   const date = record.treatment_date
@@ -378,11 +399,11 @@ function TreatmentRow({ record }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-sm">{record.disease_type}</span>
+          <span className="font-bold text-sm">{t(DISEASE_TYPE_KEYS[record.disease_type] || 'reports.honey_type_other')}</span>
           {record.severity && (
             <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold"
               style={{ background: `${color}20`, color }}>
-              {record.severity}
+              {severityOptLabel(record.severity, t)}
             </span>
           )}
           {record.hives?.hive_no && (
@@ -391,18 +412,18 @@ function TreatmentRow({ record }) {
               {record.hives.hive_no}
             </span>
           )}
-          {isRepeatSoon && <span className="text-xs text-red-400 font-bold">{t('treatment.repeat_soon')}</span>}
+          {isRepeatSoon && <span className="text-xs text-red-400 font-bold">{t('treatment_page.repeat_soon')}</span>}
         </div>
         <div className="text-xs text-gray-400 mt-0.5">
           {date}
           {record.product_name && ` · ${record.product_name}`}
           {record.dose && ` · ${record.dose}`}
-          {record.repeat_date && ` · Tekrar: ${new Date(record.repeat_date + 'T00:00:00').toLocaleDateString('tr-TR')}`}
+          {record.repeat_date && ` · ${t('treatment_page.repeat_colon')} ${new Date(record.repeat_date + 'T00:00:00').toLocaleDateString('tr-TR')}`}
         </div>
       </div>
       {record.withdrawal_days > 0 && (
         <div className="text-right flex-shrink-0">
-          <div className="text-xs font-bold text-red-400">{record.withdrawal_days}g bekleme</div>
+          <div className="text-xs font-bold text-red-400">{record.withdrawal_days}{t('treatment_page.days_unit_short')} {t('treatment_page.waiting')}</div>
         </div>
       )}
     </div>

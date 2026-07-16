@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const roleLabel = { yardimci: 'Yardımcı Arıcı', cirak: 'Çırak', sofor: 'Şoför' }
 const roleColor = { yardimci: '#27ae60', cirak: '#3498db', sofor: '#e67e22' }
 
 export default function WorkersPage() {
+  const { t } = useTranslation()
+  const roleLabel = { yardimci: t('who_working.role_assistant'), cirak: t('who_working.role_apprentice'), sofor: t('who_working.role_driver') }
   const { user } = useAuth()
   const navigate = useNavigate()
   const [workers, setWorkers] = useState([])
@@ -34,14 +36,14 @@ export default function WorkersPage() {
   async function toggleWorker(worker) {
     await supabase.from('workers').update({ is_active: !worker.is_active }).eq('id', worker.id)
     setWorkers(prev => prev.map(w => w.id === worker.id ? { ...w, is_active: !w.is_active } : w))
-    toast.success(worker.is_active ? 'Çalışan pasife alındı' : 'Çalışan aktifleştirildi')
+    toast.success(worker.is_active ? t('workers_page.deactivated') : t('workers_page.activated'))
   }
 
   async function deleteWorker(id) {
-    if (!confirm('Bu çalışanı silmek istediğinize emin misiniz?')) return
+    if (!confirm(t('workers_page.confirm_delete'))) return
     await supabase.from('workers').delete().eq('id', id)
     setWorkers(prev => prev.filter(w => w.id !== id))
-    toast.success('Çalışan silindi')
+    toast.success(t('workers_page.worker_deleted'))
   }
 
   if (loading) return (
@@ -56,9 +58,9 @@ export default function WorkersPage() {
     <div className="min-h-screen bg-dark-400">
       <div className="bg-dark-200 px-6 py-3 flex items-center justify-between"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <button className="btn-ghost" onClick={() => navigate('/panel')}>← Panele Dön</button>
-        <h1 className="font-black text-lg">Çalışan Yönetimi</h1>
-        <button className="btn-gold" onClick={() => navigate('/kim-calisiyor')}>+ Çalışan Ekle</button>
+        <button className="btn-ghost" onClick={() => navigate('/panel')}>← {t('workers_page.back_to_panel')}</button>
+        <h1 className="font-black text-lg">{t('workers_page.title')}</h1>
+        <button className="btn-gold" onClick={() => navigate('/kim-calisiyor')}>+ {t('who_working.add_worker')}</button>
       </div>
 
       <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -68,7 +70,7 @@ export default function WorkersPage() {
           <div className="card">
             <h2 className="font-black text-base mb-4 flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse inline-block"/>
-              Şu An Çalışıyor ({sessions.length})
+              {t('workers_page.currently_working')} ({sessions.length})
             </h2>
             <div className="flex flex-wrap gap-3">
               {sessions.map(s => (
@@ -78,7 +80,7 @@ export default function WorkersPage() {
                   <div>
                     <div className="text-sm font-bold">{s.workers?.full_name}</div>
                     <div className="text-xs text-gray-400">
-                      {new Date(s.started_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} başladı
+                      {new Date(s.started_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} {t('workers_page.started')}
                     </div>
                   </div>
                   <span className="w-2 h-2 bg-green-400 rounded-full ml-1"/>
@@ -90,9 +92,9 @@ export default function WorkersPage() {
 
         {/* Çalışan listesi */}
         <div className="card">
-          <h2 className="font-black text-base mb-4">Tüm Çalışanlar</h2>
+          <h2 className="font-black text-base mb-4">{t('workers_page.all_workers')}</h2>
           {workers.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">Henüz çalışan yok.</p>
+            <p className="text-gray-400 text-sm text-center py-6">{t('workers_page.no_workers')}</p>
           ) : (
             <div className="space-y-2">
               {workers.map(w => {
@@ -113,7 +115,7 @@ export default function WorkersPage() {
                       <div>
                         <div className="font-bold text-sm flex items-center gap-2">
                           {w.full_name}
-                          {!w.is_active && <span className="text-xs text-gray-500">(Pasif)</span>}
+                          {!w.is_active && <span className="text-xs text-gray-500">({t('workers_page.inactive')})</span>}
                         </div>
                         <div className="text-xs mt-0.5" style={{ color: roleColor[w.role] || '#888' }}>
                           {roleLabel[w.role] || w.role}
@@ -123,7 +125,7 @@ export default function WorkersPage() {
                     <div className="flex items-center gap-3">
                       {w.last_seen_at && (
                         <span className="text-xs text-gray-500 hidden sm:block">
-                          {isOnline ? '🟢 Online' : `Son: ${formatLastSeen(w.last_seen_at)}`}
+                          {isOnline ? '🟢 ' + t('workers_page.online') : `${t('workers_page.last_seen')}: ${formatLastSeen(w.last_seen_at, t)}`}
                         </span>
                       )}
                       <button onClick={() => toggleWorker(w)}
@@ -131,12 +133,12 @@ export default function WorkersPage() {
                         style={{ background: w.is_active ? 'rgba(231,76,60,0.15)' : 'rgba(39,174,96,0.15)',
                                  color: w.is_active ? '#e74c3c' : '#27ae60',
                                  border: `1px solid ${w.is_active ? 'rgba(231,76,60,0.3)' : 'rgba(39,174,96,0.3)'}` }}>
-                        {w.is_active ? 'Pasife Al' : 'Aktifleştir'}
+                        {w.is_active ? t('workers_page.deactivate_btn') : t('workers_page.activate_btn')}
                       </button>
                       <button onClick={() => deleteWorker(w.id)}
                         className="text-xs px-3 py-1.5 rounded-lg text-red-400 transition-colors hover:bg-red-500/10"
                         style={{ border: '1px solid rgba(231,76,60,0.2)' }}>
-                        Sil
+                        {t('common.delete')}
                       </button>
                     </div>
                   </div>
@@ -148,9 +150,9 @@ export default function WorkersPage() {
 
         {/* Aktivite logu */}
         <div className="card">
-          <h2 className="font-black text-base mb-4">Son Aktiviteler</h2>
+          <h2 className="font-black text-base mb-4">{t('dashboard.recent_activity')}</h2>
           {logs.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">Henüz aktivite yok.</p>
+            <p className="text-gray-400 text-sm text-center py-6">{t('dashboard.no_activity')}</p>
           ) : (
             <div className="space-y-2">
               {logs.map(log => (
@@ -160,7 +162,7 @@ export default function WorkersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="text-sm">
                       <span className="font-bold text-gold">{log.worker_name}</span>
-                      {' '}<span className="text-gray-300">{actionText(log.action)}</span>
+                      {' '}<span className="text-gray-300">{actionText(log.action, t)}</span>
                       {log.hive_no && <span className="font-bold text-white"> {log.hive_no}</span>}
                     </div>
                     {log.detail && <div className="text-xs text-gray-500 mt-0.5 truncate">{log.detail}</div>}
@@ -182,15 +184,15 @@ function actionEmoji(action) {
   const map = { kovan_guncellendi:'📝', bakim_eklendi:'🔧', hasat_eklendi:'🍯', hastalik_eklendi:'💊', ana_ari_guncellendi:'👑' }
   return map[action] || '📌'
 }
-function actionText(action) {
-  const map = { kovan_guncellendi:'güncelledi:', bakim_eklendi:'bakım ekledi:', hasat_eklendi:'hasat kaydetti:', hastalik_eklendi:'hastalık kaydetti:', ana_ari_guncellendi:'ana arı güncelledi:' }
+function actionText(action, t) {
+  const map = { kovan_guncellendi:t('dashboard_page.action_updated'), bakim_eklendi:t('dashboard_page.action_maintenance_added'), hasat_eklendi:t('dashboard_page.action_harvest_logged'), hastalik_eklendi:t('workers_page.action_disease_logged'), ana_ari_guncellendi:t('workers_page.action_queen_updated') }
   return map[action] || action + ':'
 }
-function formatLastSeen(d) {
+function formatLastSeen(d, t) {
   const m = Math.floor((Date.now() - new Date(d)) / 60000)
-  if (m < 2) return 'Az önce'
-  if (m < 60) return `${m}dk önce`
+  if (m < 2) return t('workers_page.just_now')
+  if (m < 60) return `${m}${t('who_working.min_ago_suffix')}`
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}sa önce`
-  return `${Math.floor(h/24)}g önce`
+  if (h < 24) return `${h}${t('who_working.hour_ago_suffix')}`
+  return `${Math.floor(h/24)}${t('who_working.day_ago_suffix')}`
 }
