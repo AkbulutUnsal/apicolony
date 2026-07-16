@@ -813,5 +813,30 @@
     "not_given": "არ მიცემულა",
     "retry": "თავიდან",
     "apply_to_form": "ფორმაში გადატანა"
+  },
+  "weather_widget": {
+    "ideal": "იდეალური",
+    "be_careful": "ფრთხილად",
+    "no_maintenance": "მოვლა არ ჩაატაროთ!",
+    "beekeeping_score": "მეფუტკრეობის ქულა",
+    "location_permission_needed": "საჭიროა მდებარეობის ნებართვა",
+    "permission_desc": "ზუსტი ამინდისთვის მიეცით ბრაუზერს მდებარეობის ნებართვა",
+    "grant_permission": "ნებართვის მიცემა",
+    "attention": "ყურადღება",
+    "stop": "შეჩერება",
+    "title": "ამინდი",
+    "feels_like": "იგრძნობა როგორც",
+    "wind": "ქარი",
+    "humidity": "ტენიანობა",
+    "rain": "ნალექი",
+    "today": "დღეს",
+    "updated": "განახლდა",
+    "day_sun": "კვ",
+    "day_mon": "ორ",
+    "day_tue": "სმ",
+    "day_wed": "ოთ",
+    "day_thu": "ხთ",
+    "day_fri": "პრ",
+    "day_sat": "შბ"
   }
 }

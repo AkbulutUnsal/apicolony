@@ -813,5 +813,30 @@
     "not_given": "Verilmedi",
     "retry": "Tekrar",
     "apply_to_form": "Forma Uygula"
+  },
+  "weather_widget": {
+    "ideal": "İdeal",
+    "be_careful": "Dikkatli ol",
+    "no_maintenance": "Bakım Yapma!",
+    "beekeeping_score": "Arıcılık Skoru",
+    "location_permission_needed": "Konum izni gerekli",
+    "permission_desc": "Doğru hava durumu için tarayıcıdan konum izni verin",
+    "grant_permission": "İzin Ver",
+    "attention": "Dikkat",
+    "stop": "Dur",
+    "title": "Hava Durumu",
+    "feels_like": "Hissedilen",
+    "wind": "Rüzgar",
+    "humidity": "Nem",
+    "rain": "Yağış",
+    "today": "Bugün",
+    "updated": "güncellendi",
+    "day_sun": "Paz",
+    "day_mon": "Pzt",
+    "day_tue": "Sal",
+    "day_wed": "Çar",
+    "day_thu": "Per",
+    "day_fri": "Cum",
+    "day_sat": "Cmt"
   }
 }
