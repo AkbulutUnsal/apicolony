@@ -6,6 +6,11 @@ import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
 const FEED_TYPES = ['Şeker Şurubu', 'Kandı / Şeker Hamuru', 'Polen Keki', 'Arı Ekmeği', 'Hazır Kek', 'Diğer']
+const FEED_TYPE_KEYS = {
+  'Şeker Şurubu': 'feeding_page.type_sugar_syrup', 'Kandı / Şeker Hamuru': 'feeding_page.type_candy',
+  'Polen Keki': 'feeding_page.type_pollen_patty', 'Arı Ekmeği': 'feeding_page.type_bee_bread',
+  'Hazır Kek': 'feeding_page.type_ready_cake', 'Diğer': 'reports.honey_type_other',
+}
 const UNITS = ['kg', 'litre', 'adet']
 
 const EMPTY_FORM = {
@@ -92,9 +97,9 @@ export default function FeedingPage() {
     }))
 
     const { error } = await supabase.from('feeding_records').insert(rows)
-    if (error) toast.error('Kaydedilemedi: ' + error.message)
+    if (error) toast.error(t('common.error_save') + ': ' + error.message)
     else {
-      toast.success(`${rows.length} kovana besleme kaydedildi`)
+      toast.success(t('feeding.saved_multi', { count: rows.length }))
       setShowForm(false)
       setForm(EMPTY_FORM)
       fetchAll()
@@ -124,7 +129,7 @@ export default function FeedingPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-black">{t('feeding.title')}</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Bu ay {monthRecords.length} kayıt · {monthCost > 0 ? `${monthCost.toFixed(0)} ₺ maliyet` : ''}</p>
+            <p className="text-sm text-gray-400 mt-0.5">{t('feeding.subtitle', { count: monthRecords.length })}{monthCost > 0 ? ` · ${monthCost.toFixed(0)} ₺ ${t('feeding_page.cost_word')}` : ''}</p>
           </div>
           <button className="btn-gold" onClick={() => { setForm(EMPTY_FORM); setShowForm(true) }}>
             {t('feeding.new_btn')}
@@ -133,9 +138,9 @@ export default function FeedingPage() {
 
         {/* Özet Kartları */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <StatCard label="Toplam Kayıt" value={records.length} icon="📋" />
-          <StatCard label="Bu Ay" value={monthRecords.length} icon="📅" />
-          <StatCard label="Bu Ay Maliyet" value={monthCost > 0 ? `${monthCost.toFixed(0)} ₺` : '—'} icon="💰" />
+          <StatCard label={t('feeding.total_records')} value={records.length} icon="📋" />
+          <StatCard label={t('common.this_month')} value={monthRecords.length} icon="📅" />
+          <StatCard label={t('feeding.monthly_cost')} value={monthCost > 0 ? `${monthCost.toFixed(0)} ₺` : '—'} icon="💰" />
         </div>
 
         {/* Form Modal */}
@@ -152,24 +157,24 @@ export default function FeedingPage() {
               <div className="p-6 flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="field-label">Tarih</label>
+                    <label className="field-label">{t('common.date')}</label>
                     <input type="date" value={form.feed_date} onChange={e => set('feed_date', e.target.value)} />
                   </div>
                   <div>
                     <label className="field-label">{t('feeding.feed_type')}</label>
                     <select value={form.feed_type} onChange={e => set('feed_type', e.target.value)}>
-                      {FEED_TYPES.map(f => <option key={f}>{f}</option>)}
+                      {FEED_TYPES.map(f => <option key={f} value={f}>{t(FEED_TYPE_KEYS[f])}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Miktar</label>
+                    <label className="field-label">{t('common.amount')}</label>
                     <input type="number" min="0" step="0.1" value={form.amount}
                       onChange={e => set('amount', e.target.value)} placeholder="0" />
                   </div>
                   <div>
                     <label className="field-label">{t('feeding.unit')}</label>
                     <select value={form.unit} onChange={e => set('unit', e.target.value)}>
-                      {UNITS.map(u => <option key={u}>{u}</option>)}
+                      {UNITS.map(u => <option key={u} value={u}>{t('feeding_page.unit_' + u)}</option>)}
                     </select>
                   </div>
                   <div className="col-span-2">
@@ -182,9 +187,9 @@ export default function FeedingPage() {
                 {/* Arılık seçimi */}
                 {apiaries.length > 0 && (
                   <div>
-                    <label className="field-label">Arılık (opsiyonel)</label>
+                    <label className="field-label">{t('feeding.apiary_optional')}</label>
                     <select value={form.apiary_id} onChange={e => selectApiary(e.target.value)}>
-                      <option value="">— Genel kayıt (arılık seçilmedi) —</option>
+                      <option value="">{t('feeding.no_apiary')}</option>
                       {apiaries.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
                   </div>
@@ -194,7 +199,7 @@ export default function FeedingPage() {
                 {filteredHives.length > 0 && (
                   <div>
                     <label className="field-label">
-                      Kovanlar — Seçilmezse {form.apiary_id ? 'tüm arılık kovanlarına' : 'genel olarak'} kaydedilir
+                      {t('feeding_page.hives_label')} — {t('feeding.hive_select_hint', { target: form.apiary_id ? t('feeding.target_all_apiary') : t('feeding.target_general') })}
                     </label>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-36 overflow-y-auto p-2 rounded-lg"
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -218,22 +223,22 @@ export default function FeedingPage() {
                       ))}
                     </div>
                     {form.hive_ids.length > 0 && (
-                      <p className="text-xs text-gold mt-1">{form.hive_ids.length} kovan seçili</p>
+                      <p className="text-xs text-gold mt-1">{t('feeding.hives_selected', { count: form.hive_ids.length })}</p>
                     )}
                   </div>
                 )}
 
                 <div>
-                  <label className="field-label">Notlar</label>
+                  <label className="field-label">{t('common.notes')}</label>
                   <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
-                    placeholder="Hava durumu, ek notlar..." className="resize-none" />
+                    placeholder={t('feeding.notes_placeholder')} className="resize-none" />
                 </div>
 
                 <div className="flex gap-2 pt-1">
                   <button className="btn-gold" onClick={save} disabled={saving}>
-                    {saving ? '⏳ Kaydediliyor...' : '💾 Kaydet'}
+                    {saving ? t('common.saving') : t('common.save')}
                   </button>
-                  <button className="btn-ghost" onClick={() => setShowForm(false)}>İptal</button>
+                  <button className="btn-ghost" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -243,7 +248,7 @@ export default function FeedingPage() {
         {/* Filtre */}
         {apiaries.length > 0 && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-            <FilterChip label="Tümü" active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
+            <FilterChip label={t('common.all')} active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
             {apiaries.map(a => (
               <FilterChip key={a.id} label={a.name} active={filterApiary === a.id} onClick={() => setFilterApiary(a.id)} />
             ))}
@@ -277,6 +282,7 @@ export default function FeedingPage() {
 }
 
 function FeedingRow({ record }) {
+  const { t } = useTranslation()
   const feedEmoji = {
     'Şeker Şurubu': '🫙', 'Kandı / Şeker Hamuru': '🍬', 'Polen Keki': '🌼',
     'Arı Ekmeği': '🍞', 'Hazır Kek': '🧁', 'Diğer': '📦'
@@ -295,7 +301,7 @@ function FeedingRow({ record }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-sm">{record.feed_type}</span>
+          <span className="font-bold text-sm">{t(FEED_TYPE_KEYS[record.feed_type] || 'reports.honey_type_other')}</span>
           {record.hives?.hive_no && (
             <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold"
               style={{ background: 'rgba(245,197,24,0.15)', color: '#f5c518' }}>
@@ -303,7 +309,7 @@ function FeedingRow({ record }) {
             </span>
           )}
           {record.apiaries?.name && !record.hive_id && (
-            <span className="text-xs text-gray-500">{record.apiaries.name} (toplu)</span>
+            <span className="text-xs text-gray-500">{record.apiaries.name} {t('feeding.bulk_label')}</span>
           )}
         </div>
         <div className="text-xs text-gray-400 mt-0.5">

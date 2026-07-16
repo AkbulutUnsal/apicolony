@@ -7,6 +7,12 @@ import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
 const FLORA_TYPES = ['Çiçek / Karma', 'Orman / Çam', 'Kestane', 'Akasya', 'Kekik', 'Ihlamur', 'Yayla', 'Narenciye', 'Diğer']
+const FLORA_TYPE_KEYS = {
+  'Çiçek / Karma': 'apiaries_page.flora_mixed', 'Orman / Çam': 'apiaries_page.flora_forest_pine',
+  'Kestane': 'harvest_page.honey_chestnut', 'Akasya': 'harvest_page.honey_acacia',
+  'Kekik': 'harvest_page.honey_thyme', 'Ihlamur': 'harvest_page.honey_linden',
+  'Yayla': 'apiaries_page.flora_plateau', 'Narenciye': 'apiaries_page.flora_citrus', 'Diğer': 'reports.honey_type_other',
+}
 const APIARY_TYPES = ['Sabit', 'Gezginci']
 
 const EMPTY_FORM = {
@@ -95,7 +101,7 @@ export default function ApiariesPage() {
     } else {
       ;({ error } = await supabase.from('apiaries').insert(payload))
     }
-    if (error) toast.error('Kaydedilemedi: ' + error.message)
+    if (error) toast.error(t('common.error_save') + ': ' + error.message)
     else {
       toast.success(editing ? t('apiaries.updated') : t('apiaries.saved'))
       setShowForm(false)
@@ -127,7 +133,7 @@ export default function ApiariesPage() {
           <div>
             <h1 className="text-xl font-black">{t('apiaries.title')}</h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {apiaries.length} arılık · {totalHives} aktif kovan
+              {t('apiaries.subtitle_count', { count: apiaries.length, hives: totalHives })}
             </p>
           </div>
           <button className="btn-gold" onClick={openNew}>{t('apiaries.new_btn')}</button>
@@ -151,43 +157,43 @@ export default function ApiariesPage() {
                   <div className="sm:col-span-2">
                     <label className="field-label">{t('apiaries.name')} *</label>
                     <input value={form.name} onChange={e => set('name', e.target.value)}
-                      placeholder="örn. Kuzey Arılığı, Yayladağ 1" autoFocus />
+                      placeholder={t('apiaries.name_placeholder')} autoFocus />
                   </div>
                   <div>
                     <label className="field-label">{t('apiaries.location')}</label>
                     <input value={form.location} onChange={e => set('location', e.target.value)}
-                      placeholder="örn. Sevimli Köyü" />
+                      placeholder={t('apiaries.location_placeholder')} />
                   </div>
                   <div>
                     <label className="field-label">{t('apiaries.region')}</label>
                     <input value={form.region} onChange={e => set('region', e.target.value)}
-                      placeholder="örn. Posof / Ardahan" />
+                      placeholder={t('apiaries.region_placeholder')} />
                   </div>
                   <div>
                     <label className="field-label">{t('apiaries.flora')}</label>
                     <select value={form.flora_type} onChange={e => set('flora_type', e.target.value)}>
-                      {FLORA_TYPES.map(f => <option key={f}>{f}</option>)}
+                      {FLORA_TYPES.map(f => <option key={f} value={f}>{t(FLORA_TYPE_KEYS[f])}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">{t('apiaries.apiary_type')}</label>
                     <select value={form.apiary_type} onChange={e => set('apiary_type', e.target.value)}>
-                      {APIARY_TYPES.map(t => <option key={t}>{t}</option>)}
+                      {APIARY_TYPES.map(at => <option key={at} value={at}>{at === 'Sabit' ? t('apiaries.fixed') : t('apiaries.nomadic')}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="field-label">{t('apiaries.altitude')}</label>
                     <input type="number" min="0" max="4000" value={form.altitude_m}
-                      onChange={e => set('altitude_m', e.target.value)} placeholder="örn. 1200" />
+                      onChange={e => set('altitude_m', e.target.value)} placeholder={t('apiaries.altitude_placeholder')} />
                   </div>
                   <div /> {/* spacer */}
                   <div>
-                    <label className="field-label">Enlem (Latitude)</label>
+                    <label className="field-label">{t('apiaries.lat')}</label>
                     <input type="number" step="0.0001" value={form.latitude}
                       onChange={e => set('latitude', e.target.value)} placeholder="41.1234" />
                   </div>
                   <div>
-                    <label className="field-label">Boylam (Longitude)</label>
+                    <label className="field-label">{t('apiaries.lon')}</label>
                     <input type="number" step="0.0001" value={form.longitude}
                       onChange={e => set('longitude', e.target.value)} placeholder="43.5678" />
                   </div>
@@ -205,15 +211,15 @@ export default function ApiariesPage() {
                   <div className="sm:col-span-2">
                     <label className="field-label">{t('common.notes')}</label>
                     <textarea rows={3} value={form.notes} onChange={e => set('notes', e.target.value)}
-                      placeholder="Arılık hakkında notlar..." className="resize-none" />
+                      placeholder={t('apiaries.notes_placeholder')} className="resize-none" />
                   </div>
                 </div>
 
                 <div className="flex gap-2 pt-2">
                   <button className="btn-gold" onClick={save} disabled={saving}>
-                    {saving ? '⏳ Kaydediliyor...' : '💾 Kaydet'}
+                    {saving ? t('common.saving') : t('common.save')}
                   </button>
-                  <button className="btn-ghost" onClick={() => setShowForm(false)}>İptal</button>
+                  <button className="btn-ghost" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -253,6 +259,7 @@ export default function ApiariesPage() {
 }
 
 function ApiaryCard({ apiary, hiveCount, onEdit, onDelete, onViewHives, deleting }) {
+  const { t } = useTranslation()
   const floraEmoji = {
     'Çiçek / Karma': '🌸', 'Orman / Çam': '🌲', 'Kestane': '🌰',
     'Akasya': '🤍', 'Kekik': '🌿', 'Ihlamur': '🍃',
@@ -285,17 +292,17 @@ function ApiaryCard({ apiary, hiveCount, onEdit, onDelete, onViewHives, deleting
             color: apiary.apiary_type === 'Gezginci' ? '#3498db' : '#27ae60',
             border: `1px solid ${apiary.apiary_type === 'Gezginci' ? 'rgba(52,152,219,0.3)' : 'rgba(39,174,96,0.3)'}`
           }}>
-          {apiary.apiary_type || 'Sabit'}
+          {apiary.apiary_type === 'Gezginci' ? t('apiaries.nomadic') : t('apiaries.fixed')}
         </span>
       </div>
 
       {/* Bilgiler */}
       <div className="grid grid-cols-2 gap-2">
-        <InfoChip label="Kovan" value={`${hiveCount} adet`} />
-        {apiary.altitude_m && <InfoChip label="Rakım" value={`${apiary.altitude_m} m`} />}
-        {apiary.flora_type && <InfoChip label="Flora" value={apiary.flora_type} />}
+        <InfoChip label={t('apiaries.hive_count')} value={`${hiveCount} ${t('apiaries_page.unit_count')}`} />
+        {apiary.altitude_m && <InfoChip label={t('apiaries_page.altitude_short')} value={`${apiary.altitude_m} m`} />}
+        {apiary.flora_type && <InfoChip label={t('apiaries_page.flora_short')} value={t(FLORA_TYPE_KEYS[apiary.flora_type] || 'reports.honey_type_other')} />}
         {apiary.latitude && apiary.longitude && (
-          <InfoChip label="GPS" value="Kayıtlı ✓" color="#27ae60" />
+          <InfoChip label="GPS" value={t('apiaries.gps_recorded')} color="#27ae60" />
         )}
       </div>
 
