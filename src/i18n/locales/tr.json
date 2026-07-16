@@ -838,5 +838,61 @@
     "day_thu": "Per",
     "day_fri": "Cum",
     "day_sat": "Cmt"
+  },
+  "batches_page": {
+    "honey_plateau": "Yayla Balı",
+    "honey_caucasus": "Kafkas Flora Balı",
+    "update_failed": "Güncellenemedi",
+    "delete_failed": "Silinemedi",
+    "batch_deleted": "Parti silindi",
+    "count_total": "{{count}} parti · {{kg}} kg toplam",
+    "total_batches": "Toplam Parti",
+    "total_kg": "Toplam Kg",
+    "published": "Yayında",
+    "not_selected": "— Seçilmedi —",
+    "producer_placeholder": "Ad Soyad / İşletme adı",
+    "humidity_short": "Nem"
+  },
+  "notif": {
+    "no_inspection_title": "{{hive}} hiç incelenmedi",
+    "no_inspection_desc": "Bu kovana henüz bakım kaydı girilmedi.",
+    "overdue_title": "{{hive}} bakım zamanı geçti",
+    "overdue_desc": "Son bakımdan bu yana {{days}} gün geçti.",
+    "honey_low_title": "{{hive}} bal stoğu kritik",
+    "honey_low_desc": "Bal stoğu {{kg}} kg — besleme gerekebilir.",
+    "dormant_title": "{{hive}} koloni sönmüş",
+    "dormant_desc": "Kuluçka yok. Kovanı kontrol et.",
+    "treatment_repeat_title": "{{hive}} tekrar tedavi",
+    "treatment_word": "tedavi",
+    "today_excl": "bugün!",
+    "within_days": "{{days}} gün içinde",
+    "queen_change_title": "{{hive}} ana arı değişimi yaklaşıyor",
+    "queen_change_desc": "{{days}} gün içinde ana arı değişimi planlandı.",
+    "queen_overdue_title": "{{hive}} ana arı değişimi gecikti",
+    "queen_overdue_desc": "Ana arı değişimi {{days}} gün gecikmeli."
+  },
+  "qr_scan": {
+    "camera_error": "Kamera erişimi sağlanamadı. Lütfen kamera iznini kontrol edin.",
+    "invalid_qr": "Geçersiz kovan QR kodu",
+    "hive_not_found": "Kovan bulunamadı",
+    "hive_found": "{{hive}} kovanı bulundu!",
+    "title": "Kovan Tara",
+    "subtitle": "Kovanın QR kodunu kameraya gösterin",
+    "scan_again": "Tekrar Tara",
+    "help_text_1": "QR kodu okuyamazsan kovan numarasını manuel girmek için",
+    "help_link": "panele dön",
+    "help_text_2": "ve kovana tıkla."
+  },
+  "hive_photos": {
+    "max_5mb": "Maksimum 5MB",
+    "upload_error": "Yükleme hatası",
+    "uploaded": "Fotoğraf yüklendi!",
+    "confirm_delete": "Bu fotoğrafı silmek istediğinize emin misiniz?",
+    "hive_images": "{{hive}} kovanına ait görseller",
+    "take_photo": "Çek",
+    "click_to_add": "Fotoğraf eklemek için tıkla",
+    "max_size_formats": "Maks 5MB · JPG, PNG, WEBP",
+    "hive_photo_alt": "Kovan fotoğrafı",
+    "preview_alt": "Önizleme"
   }
 }

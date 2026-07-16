@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 
 const NotifContext = createContext(null)
 
 export function NotificationProvider({ children }) {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -39,8 +41,8 @@ export function NotificationProvider({ children }) {
           id: `no-inspection-${hive.id}`,
           type: 'critical',
           icon: '🔴',
-          title: `${hive.hive_no} hiç incelenmedi`,
-          desc: 'Bu kovana henüz bakım kaydı girilmedi.',
+          title: t('notif.no_inspection_title', { hive: hive.hive_no }),
+          desc: t('notif.no_inspection_desc'),
           hive_id: hive.id,
           hive_no: hive.hive_no,
           created_at: new Date().toISOString(),
@@ -56,8 +58,8 @@ export function NotificationProvider({ children }) {
           id: `overdue-${hive.id}`,
           type: 'warning',
           icon: '🟡',
-          title: `${hive.hive_no} bakım zamanı geçti`,
-          desc: `Son bakımdan bu yana ${daysSince} gün geçti.`,
+          title: t('notif.overdue_title', { hive: hive.hive_no }),
+          desc: t('notif.overdue_desc', { days: daysSince }),
           hive_id: hive.id,
           hive_no: hive.hive_no,
           created_at: new Date().toISOString(),
@@ -70,8 +72,8 @@ export function NotificationProvider({ children }) {
           id: `honey-low-${hive.id}`,
           type: 'critical',
           icon: '🍯',
-          title: `${hive.hive_no} bal stoğu kritik`,
-          desc: `Bal stoğu ${hive.honey_stock_kg} kg — besleme gerekebilir.`,
+          title: t('notif.honey_low_title', { hive: hive.hive_no }),
+          desc: t('notif.honey_low_desc', { kg: hive.honey_stock_kg }),
           hive_id: hive.id,
           hive_no: hive.hive_no,
           created_at: new Date().toISOString(),
@@ -84,8 +86,8 @@ export function NotificationProvider({ children }) {
           id: `dormant-${hive.id}`,
           type: 'critical',
           icon: '💀',
-          title: `${hive.hive_no} koloni sönmüş`,
-          desc: 'Kuluçka yok. Kovanı kontrol et.',
+          title: t('notif.dormant_title', { hive: hive.hive_no }),
+          desc: t('notif.dormant_desc'),
           hive_id: hive.id,
           hive_no: hive.hive_no,
           created_at: new Date().toISOString(),
@@ -94,16 +96,16 @@ export function NotificationProvider({ children }) {
     }
 
     // Yaklaşan tekrar tedaviler
-    for (const t of upcomingTreatments) {
-      const daysUntil = Math.ceil((new Date(t.repeat_date) - Date.now()) / 86400000)
+    for (const tr of upcomingTreatments) {
+      const daysUntil = Math.ceil((new Date(tr.repeat_date) - Date.now()) / 86400000)
       notifs.push({
         id: `treatment-repeat-${t.id}`,
         type: daysUntil <= 2 ? 'critical' : 'warning',
         icon: '💊',
-        title: `${t.hives?.hive_no || 'Kovan'} tekrar tedavi`,
-        desc: `${t.disease_type} — ${t.product_name || 'tedavi'} ${daysUntil <= 0 ? 'bugün!' : `${daysUntil} gün içinde`}`,
-        hive_id: t.hive_id,
-        hive_no: t.hives?.hive_no,
+        title: t('notif.treatment_repeat_title', { hive: tr.hives?.hive_no || t('reports.col_hive') }),
+        desc: `${tr.disease_type} — ${tr.product_name || t('notif.treatment_word')} ${daysUntil <= 0 ? t('notif.today_excl') : t('notif.within_days', { days: daysUntil })}`,
+        hive_id: tr.hive_id,
+        hive_no: tr.hives?.hive_no,
         created_at: new Date().toISOString(),
       })
     }
@@ -117,8 +119,8 @@ export function NotificationProvider({ children }) {
           id: `queen-change-${q.id}`,
           type: 'info',
           icon: '👑',
-          title: `${q.hives?.hive_no} ana arı değişimi yaklaşıyor`,
-          desc: `${daysUntil} gün içinde ana arı değişimi planlandı.`,
+          title: t('notif.queen_change_title', { hive: q.hives?.hive_no }),
+          desc: t('notif.queen_change_desc', { days: daysUntil }),
           hive_id: q.hive_id,
           hive_no: q.hives?.hive_no,
           created_at: new Date().toISOString(),
@@ -128,8 +130,8 @@ export function NotificationProvider({ children }) {
           id: `queen-overdue-${q.id}`,
           type: 'warning',
           icon: '👑',
-          title: `${q.hives?.hive_no} ana arı değişimi gecikti`,
-          desc: `Ana arı değişimi ${Math.abs(daysUntil)} gün gecikmeli.`,
+          title: t('notif.queen_overdue_title', { hive: q.hives?.hive_no }),
+          desc: t('notif.queen_overdue_desc', { days: Math.abs(daysUntil) }),
           hive_id: q.hive_id,
           hive_no: q.hives?.hive_no,
           created_at: new Date().toISOString(),

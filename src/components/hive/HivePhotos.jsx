@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 
 export default function HivePhotos({ hiveId, hiveNo }) {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [photos, setPhotos] = useState([])
   const [uploading, setUploading] = useState(false)
@@ -30,7 +32,7 @@ export default function HivePhotos({ hiveId, hiveNo }) {
   async function uploadPhoto(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { toast.error('Maksimum 5MB'); return }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t('hive_photos.max_5mb')); return }
 
     setUploading(true)
     const ext = file.name.split('.').pop()
@@ -42,9 +44,9 @@ export default function HivePhotos({ hiveId, hiveNo }) {
       .upload(path, file, { cacheControl: '3600', upsert: false })
 
     if (error) {
-      toast.error('Yükleme hatası: ' + error.message)
+      toast.error(t('hive_photos.upload_error') + ': ' + error.message)
     } else {
-      toast.success('Fotoğraf yüklendi!')
+      toast.success(t('hive_photos.uploaded'))
       await fetchPhotos()
     }
     setUploading(false)
@@ -52,20 +54,20 @@ export default function HivePhotos({ hiveId, hiveNo }) {
   }
 
   async function deletePhoto(fileName) {
-    if (!confirm('Bu fotoğrafı silmek istediğinize emin misiniz?')) return
+    if (!confirm(t('hive_photos.confirm_delete'))) return
     await supabase.storage
       .from('hive-photos')
       .remove([`${user.id}/${hiveId}/${fileName}`])
     setPhotos(prev => prev.filter(p => p.name !== fileName))
-    toast.success('Silindi')
+    toast.success(t('common.deleted'))
   }
 
   return (
     <div className="card mt-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-black text-base">📸 Fotoğraflar</h3>
-          <p className="text-xs text-gray-400 mt-0.5">{hiveNo} kovanına ait görseller</p>
+          <h3 className="font-black text-base">📸 {t('hive_form.tab_photos')}</h3>
+          <p className="text-xs text-gray-400 mt-0.5">{t('hive_photos.hive_images', { hive: hiveNo })}</p>
         </div>
         <div className="flex gap-2">
           {/* Kamera - mobilde direkt açar */}
@@ -76,7 +78,7 @@ export default function HivePhotos({ hiveId, hiveNo }) {
           }}
             className="btn-ghost text-sm py-1.5 px-3"
             disabled={uploading}>
-            📷 Çek
+            📷 {t('hive_photos.take_photo')}
           </button>
           <button onClick={() => {
             inputRef.current.removeAttribute('capture')
@@ -84,7 +86,7 @@ export default function HivePhotos({ hiveId, hiveNo }) {
           }}
             className="btn-gold text-sm py-1.5 px-3"
             disabled={uploading}>
-            {uploading ? '⏳' : '+ Ekle'}
+            {uploading ? '⏳' : '+ ' + t('common.add')}
           </button>
         </div>
         <input ref={inputRef} type="file" accept="image/*"
@@ -96,15 +98,15 @@ export default function HivePhotos({ hiveId, hiveNo }) {
           onClick={() => inputRef.current.click()}
           style={{ border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 12 }}>
           <span className="text-4xl mb-2">📷</span>
-          <span className="text-sm">Fotoğraf eklemek için tıkla</span>
-          <span className="text-xs text-gray-600 mt-1">Maks 5MB · JPG, PNG, WEBP</span>
+          <span className="text-sm">{t('hive_photos.click_to_add')}</span>
+          <span className="text-xs text-gray-600 mt-1">{t('hive_photos.max_size_formats')}</span>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {photos.map(photo => (
             <div key={photo.name} className="relative group aspect-square rounded-xl overflow-hidden cursor-pointer"
               onClick={() => setPreview(photo.url)}>
-              <img src={photo.url} alt="Kovan fotoğrafı"
+              <img src={photo.url} alt={t('hive_photos.hive_photo_alt')}
                 className="w-full h-full object-cover transition-transform group-hover:scale-105"/>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
                 style={{ background: 'rgba(0,0,0,0.5)' }}>
@@ -133,7 +135,7 @@ export default function HivePhotos({ hiveId, hiveNo }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.9)' }}
           onClick={() => setPreview(null)}>
-          <img src={preview} alt="Önizleme"
+          <img src={preview} alt={t('hive_photos.preview_alt')}
             className="max-w-full max-h-full rounded-xl object-contain"
             style={{ maxHeight: '85vh' }}/>
           <button className="absolute top-4 right-4 w-10 h-10 bg-dark-200 rounded-full flex items-center justify-center text-lg"

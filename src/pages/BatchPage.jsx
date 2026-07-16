@@ -8,6 +8,13 @@ import { useTranslation } from 'react-i18next'
 import { QRCodeCanvas } from 'qrcode.react'
 
 const HONEY_TYPES = ['Çiçek Balı', 'Yayla Balı', 'Orman Balı', 'Kestane Balı', 'Akasya Balı', 'Kekik Balı', 'Ihlamur Balı', 'Çam Balı', 'Kafkas Flora Balı', 'Diğer']
+const BATCH_HONEY_TYPE_KEYS = {
+  'Çiçek Balı': 'harvest_page.honey_flower', 'Yayla Balı': 'batches_page.honey_plateau',
+  'Orman Balı': 'harvest_page.honey_forest', 'Kestane Balı': 'harvest_page.honey_chestnut',
+  'Akasya Balı': 'harvest_page.honey_acacia', 'Kekik Balı': 'harvest_page.honey_thyme',
+  'Ihlamur Balı': 'harvest_page.honey_linden', 'Çam Balı': 'harvest_page.honey_pine',
+  'Kafkas Flora Balı': 'batches_page.honey_caucasus', 'Diğer': 'reports.honey_type_other',
+}
 
 const EMPTY_FORM = {
   batch_no: '',
@@ -87,7 +94,7 @@ export default function BatchPage() {
       is_public: true
     }
     const { error } = await supabase.from('honey_batches').insert(payload)
-    if (error) toast.error('Kaydedilemedi: ' + error.message)
+    if (error) toast.error(t('common.error_save') + ': ' + error.message)
     else { toast.success(t('batches.saved')); setShowForm(false); fetchAll() }
     setSaving(false)
   }
@@ -100,15 +107,15 @@ export default function BatchPage() {
   async function togglePublic(batch) {
     const { error } = await supabase.from('honey_batches')
       .update({ is_public: !batch.is_public }).eq('id', batch.id)
-    if (error) toast.error('Güncellenemedi')
+    if (error) toast.error(t('batches_page.update_failed'))
     else { toast.success(batch.is_public ? t('batches.hidden_success') : t('batches.published_success')); fetchAll() }
   }
 
   async function deleteBatch(id) {
     if (!confirm(t('batches.confirm_delete'))) return
     const { error } = await supabase.from('honey_batches').delete().eq('id', id)
-    if (error) toast.error('Silinemedi')
-    else { toast.success('Parti silindi'); fetchAll() }
+    if (error) toast.error(t('batches_page.delete_failed'))
+    else { toast.success(t('batches_page.batch_deleted')); fetchAll() }
   }
 
   const totalKg = batches.reduce((s, b) => s + (b.total_kg || 0), 0)
@@ -123,7 +130,7 @@ export default function BatchPage() {
           <div>
             <h1 className="text-xl font-black">{t('batches.title')}</h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {batches.length} parti · {totalKg.toFixed(1)} kg toplam
+              {t('batches_page.count_total', { count: batches.length, kg: totalKg.toFixed(1) })}
             </p>
           </div>
           <button className="btn-gold" onClick={openNew}>{t('batches.new_btn')}</button>
@@ -131,9 +138,9 @@ export default function BatchPage() {
 
         {/* Özet */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <StatCard icon="🫙" label="Toplam Parti" value={batches.length} />
-          <StatCard icon="⚖️" label="Toplam Kg" value={`${totalKg.toFixed(1)} kg`} />
-          <StatCard icon="🌐" label="Yayında" value={batches.filter(b => b.is_public).length} />
+          <StatCard icon="🫙" label={t('batches_page.total_batches')} value={batches.length} />
+          <StatCard icon="⚖️" label={t('batches_page.total_kg')} value={`${totalKg.toFixed(1)} kg`} />
+          <StatCard icon="🌐" label={t('batches_page.published')} value={batches.filter(b => b.is_public).length} />
         </div>
 
         {/* Form Modal */}
@@ -156,7 +163,7 @@ export default function BatchPage() {
                   <div>
                     <label className="field-label">{t('batches.honey_type')}</label>
                     <select value={form.honey_type} onChange={e => set('honey_type', e.target.value)}>
-                      {HONEY_TYPES.map(t => <option key={t}>{t}</option>)}
+                      {HONEY_TYPES.map(ht => <option key={ht} value={ht}>{t(BATCH_HONEY_TYPE_KEYS[ht])}</option>)}
                     </select>
                   </div>
                   <div>
@@ -184,9 +191,9 @@ export default function BatchPage() {
                   </div>
                   {apiaries.length > 0 && (
                     <div className="col-span-2">
-                      <label className="field-label">Arılık</label>
+                      <label className="field-label">{t('finance_page.apiary')}</label>
                       <select value={form.apiary_id} onChange={e => set('apiary_id', e.target.value)}>
-                        <option value="">— Seçilmedi —</option>
+                        <option value="">{t('batches_page.not_selected')}</option>
                         {apiaries.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                       </select>
                     </div>
@@ -194,7 +201,7 @@ export default function BatchPage() {
                   <div className="col-span-2">
                     <label className="field-label">{t('batches.producer')}</label>
                     <input value={form.producer_name} onChange={e => set('producer_name', e.target.value)}
-                      placeholder="Ad Soyad / İşletme adı" />
+                      placeholder={t('batches_page.producer_placeholder')} />
                   </div>
                   <div className="col-span-2">
                     <label className="field-label">{t('batches.story')}</label>
@@ -215,9 +222,9 @@ export default function BatchPage() {
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button className="btn-gold" onClick={save} disabled={saving}>
-                    {saving ? '⏳ Kaydediliyor...' : '💾 Kaydet'}
+                    {saving ? t('common.saving') : t('common.save')}
                   </button>
-                  <button className="btn-ghost" onClick={() => setShowForm(false)}>İptal</button>
+                  <button className="btn-ghost" onClick={() => setShowForm(false)}>{t('common.cancel')}</button>
                 </div>
               </div>
             </div>
@@ -288,6 +295,7 @@ export default function BatchPage() {
 }
 
 function BatchCard({ batch, onQR, onTogglePublic, onDelete, onPreview }) {
+  const { t } = useTranslation()
   const date = batch.harvest_date
     ? new Date(batch.harvest_date + 'T00:00:00').toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
     : '—'
@@ -306,19 +314,19 @@ function BatchCard({ batch, onQR, onTogglePublic, onDelete, onPreview }) {
             <span className="font-black text-sm">{batch.batch_no}</span>
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
               style={{ background: 'rgba(245,197,24,0.15)', color: '#f5c518' }}>
-              {batch.honey_type}
+              {t(BATCH_HONEY_TYPE_KEYS[batch.honey_type] || 'reports.honey_type_other')}
             </span>
             {batch.is_public && (
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
                 style={{ background: 'rgba(39,174,96,0.15)', color: '#27ae60', border: '1px solid rgba(39,174,96,0.3)' }}>
-                🌐 Yayında
+                🌐 {t('batches_page.published')}
               </span>
             )}
           </div>
           <div className="text-xs text-gray-400 mt-0.5">
             {date} · {batch.total_kg} kg
             {batch.apiaries?.name && ` · ${batch.apiaries.name}`}
-            {batch.brix_value && ` · Nem: ${batch.brix_value}%`}
+            {batch.brix_value && ` · ${t('batches_page.humidity_short')}: ${batch.brix_value}%`}
           </div>
         </div>
       </div>

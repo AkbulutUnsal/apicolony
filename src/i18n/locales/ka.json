@@ -838,5 +838,61 @@
     "day_thu": "ხთ",
     "day_fri": "პრ",
     "day_sat": "შბ"
+  },
+  "batches_page": {
+    "honey_plateau": "პლატოს თაფლი",
+    "honey_caucasus": "კავკასიური ფლორის თაფლი",
+    "update_failed": "ვერ განახლდა",
+    "delete_failed": "ვერ წაიშალა",
+    "batch_deleted": "პარტია წაიშალა",
+    "count_total": "{{count}} პარტია · სულ {{kg}} კგ",
+    "total_batches": "სულ პარტია",
+    "total_kg": "სულ კგ",
+    "published": "გამოქვეყნებული",
+    "not_selected": "— არჩეული არ არის —",
+    "producer_placeholder": "სახელი გვარი / კომპანიის სახელი",
+    "humidity_short": "ტენიანობა"
+  },
+  "notif": {
+    "no_inspection_title": "{{hive}} არასდროს შემოწმებულა",
+    "no_inspection_desc": "ამ სკას ჯერ არ აქვს მოვლის ჩანაწერი.",
+    "overdue_title": "{{hive}} მოვლის დრო გავიდა",
+    "overdue_desc": "ბოლო მოვლიდან გავიდა {{days}} დღე.",
+    "honey_low_title": "{{hive}} თაფლის მარაგი კრიტიკულია",
+    "honey_low_desc": "თაფლის მარაგი {{kg}} კგ — შეიძლება საჭირო გახდეს კვება.",
+    "dormant_title": "{{hive}} კოლონია ჩამქრალია",
+    "dormant_desc": "ბარტყი არ არის. შეამოწმეთ სკა.",
+    "treatment_repeat_title": "{{hive}} განმეორებითი მკურნალობა",
+    "treatment_word": "მკურნალობა",
+    "today_excl": "დღეს!",
+    "within_days": "{{days}} დღეში",
+    "queen_change_title": "{{hive}} დედის შეცვლა ახლოვდება",
+    "queen_change_desc": "დედის შეცვლა დაგეგმილია {{days}} დღეში.",
+    "queen_overdue_title": "{{hive}} დედის შეცვლა დაგვიანდა",
+    "queen_overdue_desc": "დედის შეცვლა {{days}} დღით დაგვიანდა."
+  },
+  "qr_scan": {
+    "camera_error": "კამერაზე წვდომა ვერ მოხერხდა. გთხოვთ, შეამოწმოთ კამერის ნებართვა.",
+    "invalid_qr": "სკის QR კოდი არასწორია",
+    "hive_not_found": "სკა ვერ მოიძებნა",
+    "hive_found": "სკა {{hive}} მოიძებნა!",
+    "title": "სკის სკანირება",
+    "subtitle": "მიმართეთ სკის QR კოდი კამერისკენ",
+    "scan_again": "ხელახლა სკანირება",
+    "help_text_1": "თუ QR კოდის წაკითხვა ვერ ხერხდება, სკის ნომრის ხელით შესაყვანად",
+    "help_link": "დაბრუნდით პანელში",
+    "help_text_2": "და დააჭირეთ სკას."
+  },
+  "hive_photos": {
+    "max_5mb": "მაქსიმუმ 5MB",
+    "upload_error": "ატვირთვის შეცდომა",
+    "uploaded": "ფოტო ატვირთულია!",
+    "confirm_delete": "დარწმუნებული ხართ, რომ გსურთ ამ ფოტოს წაშლა?",
+    "hive_images": "{{hive}} სკის სურათები",
+    "take_photo": "გადაღება",
+    "click_to_add": "დააჭირეთ ფოტოს დასამატებლად",
+    "max_size_formats": "მაქს 5MB · JPG, PNG, WEBP",
+    "hive_photo_alt": "სკის ფოტო",
+    "preview_alt": "გადახედვა"
   }
 }

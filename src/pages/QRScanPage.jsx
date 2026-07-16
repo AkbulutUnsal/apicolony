@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import HexLogo from '../components/ui/HexLogo'
 
 export default function QRScanPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const scannerRef = useRef(null)
   const [scanning, setScanning] = useState(false)
@@ -32,7 +34,7 @@ export default function QRScanPage() {
         () => {} // hata sessizce yoksay
       )
     } catch (err) {
-      setError('Kamera erişimi sağlanamadı. Lütfen kamera iznini kontrol edin.')
+      setError(t('qr_scan.camera_error'))
       setScanning(false)
     }
   }
@@ -58,18 +60,18 @@ export default function QRScanPage() {
     // UUID formatını doğrula
     const isUUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(hiveId)
     if (!isUUID) {
-      toast.error('Geçersiz kovan QR kodu')
+      toast.error(t('qr_scan.invalid_qr'))
       return
     }
 
     // Kovanı DB'de ara
     const { data, error } = await supabase.from('hives').select('id, hive_no').eq('id', hiveId).single()
     if (error || !data) {
-      toast.error('Kovan bulunamadı')
+      toast.error(t('qr_scan.hive_not_found'))
       return
     }
 
-    toast.success(`${data.hive_no} kovanı bulundu!`)
+    toast.success(t('qr_scan.hive_found', { hive: data.hive_no }))
     navigate(`/kovan/${data.id}`)
   }
 
@@ -79,8 +81,8 @@ export default function QRScanPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <HexLogo size={44} className="mx-auto mb-3" />
-          <h1 className="text-xl font-black text-white">Kovan Tara</h1>
-          <p className="text-sm text-gray-400 mt-1">Kovanın QR kodunu kameraya gösterin</p>
+          <h1 className="text-xl font-black text-white">{t('qr_scan.title')}</h1>
+          <p className="text-sm text-gray-400 mt-1">{t('qr_scan.subtitle')}</p>
         </div>
 
         {/* Scanner */}
@@ -113,19 +115,19 @@ export default function QRScanPage() {
         {/* Butonlar */}
         <div className="flex gap-3 mt-6">
           <button className="btn-ghost flex-1 justify-center" onClick={() => navigate('/panel')}>
-            ← Panele Dön
+            ← {t('workers_page.back_to_panel')}
           </button>
           {!scanning && !error && (
             <button className="btn-gold flex-1 justify-center" onClick={startScanner}>
-              🔄 Tekrar Tara
+              🔄 {t('qr_scan.scan_again')}
             </button>
           )}
         </div>
 
         {/* Yardım */}
         <p className="text-center text-xs text-gray-500 mt-6">
-          QR kodu okuyamazsan kovan numarasını manuel girmek için<br/>
-          <span className="text-gold cursor-pointer" onClick={() => navigate('/panel')}>panele dön</span> ve kovana tıkla.
+          {t('qr_scan.help_text_1')}<br/>
+          <span className="text-gold cursor-pointer" onClick={() => navigate('/panel')}>{t('qr_scan.help_link')}</span> {t('qr_scan.help_text_2')}
         </p>
       </div>
     </div>
