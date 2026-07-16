@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // Open-Meteo - tamamen ücretsiz, API key yok!
 // https://open-meteo.com/
 
-const WMO_CODES = {
-  0:'Açık',1:'Az bulutlu',2:'Parçalı bulutlu',3:'Bulutlu',
-  45:'Sisli',48:'Buzlu sis',
-  51:'Hafif çisenti',53:'Orta çisenti',55:'Yoğun çisenti',
-  61:'Hafif yağmur',63:'Orta yağmur',65:'Şiddetli yağmur',
-  71:'Hafif kar',73:'Orta kar',75:'Yoğun kar',77:'Kar taneleri',
-  80:'Hafif sağanak',81:'Orta sağanak',82:'Şiddetli sağanak',
-  85:'Hafif kar sağanağı',86:'Yoğun kar sağanağı',
-  95:'Gök gürültülü fırtına',96:'Dolu ile fırtına',99:'Şiddetli dolu ile fırtına'
+const WMO_KEYS = {
+  0:'weather.wmo_0',1:'weather.wmo_1',2:'weather.wmo_2',3:'weather.wmo_3',
+  45:'weather.wmo_45',48:'weather.wmo_48',
+  51:'weather.wmo_51',53:'weather.wmo_53',55:'weather.wmo_55',
+  61:'weather.wmo_61',63:'weather.wmo_63',65:'weather.wmo_65',
+  71:'weather.wmo_71',73:'weather.wmo_73',75:'weather.wmo_75',77:'weather.wmo_77',
+  80:'weather.wmo_80',81:'weather.wmo_81',82:'weather.wmo_82',
+  85:'weather.wmo_85',86:'weather.wmo_86',
+  95:'weather.wmo_95',96:'weather.wmo_96',99:'weather.wmo_99'
 }
 
 const WMO_EMOJI = {
@@ -25,6 +26,7 @@ const WMO_EMOJI = {
 }
 
 export function useWeather() {
+  const { t, i18n } = useTranslation()
   const [weather, setWeather] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -59,11 +61,11 @@ export function useWeather() {
       if (ipData.latitude && ipData.longitude) {
         await fetchWeather(ipData.latitude, ipData.longitude, ipData.city || ipData.region)
       } else {
-        setError('Konum alınamadı')
+        setError(t('weather.location_error'))
         setLoading(false)
       }
     } catch {
-      setError('Konum alınamadı')
+      setError(t('weather.location_error'))
       setLoading(false)
     }
   }
@@ -83,13 +85,13 @@ export function useWeather() {
       const res = await fetch(url)
       const data = await res.json()
 
-      if (!data.current) throw new Error('Veri alınamadı')
+      if (!data.current) throw new Error(t('weather.data_error'))
 
       // Şehir adı için reverse geocoding (ücretsiz)
-      let city = fallbackCity || 'Konumunuz'
+      let city = fallbackCity || t('weather.your_location')
       try {
         const geoRes = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=tr`
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=${i18n.language}`
         )
         const geoData = await geoRes.json()
         city = geoData.address?.city || geoData.address?.town || geoData.address?.village || city
@@ -106,22 +108,22 @@ export function useWeather() {
       let score = 100
       const tips = []
 
-      if (temp < 10) { score -= 40; tips.push('❄️ Soğuk hava — kovanlara girme') }
-      else if (temp < 15) { score -= 20; tips.push('🧥 Serin — bakımı kısa tut') }
-      else if (temp > 35) { score -= 15; tips.push('🌡️ Çok sıcak — sabah erken çalış') }
-      else if (temp >= 18 && temp <= 28) tips.push('🌡️ Sıcaklık ideal')
+      if (temp < 10) { score -= 40; tips.push('❄️ ' + t('weather.tip_cold')) }
+      else if (temp < 15) { score -= 20; tips.push('🧥 ' + t('weather.tip_cool')) }
+      else if (temp > 35) { score -= 15; tips.push('🌡️ ' + t('weather.tip_hot')) }
+      else if (temp >= 18 && temp <= 28) tips.push('🌡️ ' + t('weather.tip_ideal_temp'))
 
-      if (wind > 20) { score -= 25; tips.push('💨 Kuvvetli rüzgar — arılar huzursuz') }
-      else if (wind > 10) { score -= 10; tips.push('💨 Orta rüzgar — dikkatli ol') }
+      if (wind > 20) { score -= 25; tips.push('💨 ' + t('weather.tip_strong_wind')) }
+      else if (wind > 10) { score -= 10; tips.push('💨 ' + t('weather.tip_medium_wind')) }
 
-      if (rain > 0.5) { score -= 50; tips.push('🌧️ Yağmur var — bakım yapma!') }
-      else if (rain > 0) { score -= 20; tips.push('🌦️ Hafif yağmur — dikkat et') }
+      if (rain > 0.5) { score -= 50; tips.push('🌧️ ' + t('weather.tip_rain')) }
+      else if (rain > 0) { score -= 20; tips.push('🌦️ ' + t('weather.tip_light_rain')) }
 
-      if ([95,96,99].includes(code)) { score -= 60; tips.push('⛈️ Fırtına — kesinlikle çalışma!') }
-      if (humidity > 85) { score -= 10; tips.push('💧 Nem çok yüksek') }
+      if ([95,96,99].includes(code)) { score -= 60; tips.push('⛈️ ' + t('weather.tip_storm')) }
+      if (humidity > 85) { score -= 10; tips.push('💧 ' + t('weather.tip_high_humidity')) }
 
-      if (tips.length === 0 || (tips.length === 1 && tips[0].includes('ideal'))) {
-        tips.push('✅ Bakım için mükemmel koşullar!')
+      if (tips.length === 0 || (tips.length === 1 && tips[0].includes(t('weather.tip_ideal_temp')))) {
+        tips.push('✅ ' + t('weather.tip_perfect'))
       }
 
       score = Math.max(0, Math.min(100, score))
@@ -145,7 +147,7 @@ export function useWeather() {
         wind,
         rain,
         code,
-        description: WMO_CODES[code] || 'Bilinmiyor',
+        description: t(WMO_KEYS[code] || 'reports.unknown'),
         emoji: WMO_EMOJI[code] || '🌤️',
         beekeepingScore: score,
         tips,
@@ -153,7 +155,7 @@ export function useWeather() {
         updatedAt: new Date()
       })
     } catch (err) {
-      setError('Hava durumu verisi alınamadı')
+      setError(t('weather.fetch_error'))
     } finally {
       setLoading(false)
     }

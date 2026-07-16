@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+const SPEECH_LANG = { tr: 'tr-TR', ka: 'ka-GE', en: 'en-US', ru: 'ru-RU' }
+const LANG_NAMES = { tr: 'Türkçe', ka: 'ქართული (Georgian)', en: 'English', ru: 'Русский' }
 
 export default function VoiceRecorder({ hive, onFieldsDetected, onClose }) {
+  const { t, i18n } = useTranslation()
   const [phase, setPhase] = useState('idle')
   const [transcript, setTranscript] = useState('')
   const [interimText, setInterimText] = useState('')
@@ -20,9 +24,9 @@ export default function VoiceRecorder({ hive, onFieldsDetected, onClose }) {
   }, [])
 
   function startRecording() {
-    if (!SpeechRecognition) { toast.error('Tarayıcınız ses tanımayı desteklemiyor'); return }
+    if (!SpeechRecognition) { toast.error(t('voice.not_supported')); return }
     const recognition = new SpeechRecognition()
-    recognition.lang = 'tr-TR'
+    recognition.lang = SPEECH_LANG[i18n.language] || 'tr-TR'
     recognition.continuous = true
     recognition.interimResults = true
     transcriptRef.current = ''
@@ -39,7 +43,7 @@ export default function VoiceRecorder({ hive, onFieldsDetected, onClose }) {
       setTranscript(final)
       setInterimText(interim)
     }
-    recognition.onerror = (e) => { if (e.error !== 'no-speech') toast.error('Hata: ' + e.error) }
+    recognition.onerror = (e) => { if (e.error !== 'no-speech') toast.error(`${t('voice.recognition_error')}: ${e.error}`) }
     recognition.start()
     recognitionRef.current = recognition
     setPhase('recording')
@@ -54,7 +58,7 @@ export default function VoiceRecorder({ hive, onFieldsDetected, onClose }) {
     setInterimText('')
     setTimeout(() => {
       const final = transcriptRef.current.trim()
-      if (final.length < 5) { toast.error('Ses algılanamadı, tekrar deneyin'); setPhase('idle') }
+      if (final.length < 5) { toast.error(t('voice.no_speech_detected')); setPhase('idle') }
       else analyzeWithAI(final)
     }, 500)
   }
@@ -65,7 +69,8 @@ export default function VoiceRecorder({ hive, onFieldsDetected, onClose }) {
         body: {
           system: `Sen bir arıcılık asistanısın. Kullanıcının sesli notunu analiz edip sadece JSON döndür. Başka hiçbir şey yazma.
 Format:
-{"honey_stock_kg":number|null,"brood_status":"İyi"|"Orta"|"Zayıf"|"Yok"|null,"aggressiveness":"Sakin"|"Normal"|"Hırçın"|"Çok Hırçın"|null,"frame_count":number|null,"queen_seen":true|false|null,"disease_signs":true|false|null,"disease_name":string|null,"feed_given":true|false|null,"feed_type":string|null,"colony_strength":"Güçlü"|"Orta"|"Zayıf"|null,"notes":string|null}`,
+{"honey_stock_kg":number|null,"brood_status":"İyi"|"Orta"|"Zayıf"|"Yok"|null,"aggressiveness":"Sakin"|"Normal"|"Hırçın"|"Çok Hırçın"|null,"frame_count":number|null,"queen_seen":true|false|null,"disease_signs":true|false|null,"disease_name":string|null,"feed_given":true|false|null,"feed_type":string|null,"colony_strength":"Güçlü"|"Orta"|"Zayıf"|null,"notes":string|null}
+notes alanını ${LANG_NAMES[i18n.language] || 'Türkçe'} dilinde yaz.`,
           messages: [{ role: 'user', content: `Kovan: ${hive?.hive_no || '?'}\nNot: "${text}"` }]
         }
       })
@@ -82,7 +87,7 @@ Format:
 
   function applyFields() {
     onFieldsDetected(detectedFields)
-    toast.success('Bilgiler forma aktarıldı! ✅')
+    toast.success(t('voice.applied_to_form'))
     onClose()
   }
 
@@ -102,8 +107,8 @@ Format:
         <div className="flex items-center justify-between px-5 py-4"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div>
-            <h2 className="font-black text-base">🎙️ Sesli Bakım Kaydı</h2>
-            {hive && <p className="text-xs text-gray-400 mt-0.5">{hive.hive_no} kovana kayıt</p>}
+            <h2 className="font-black text-base">🎙️ {t('voice.title')}</h2>
+            {hive && <p className="text-xs text-gray-400 mt-0.5">{t('voice.recording_for_hive', { hive: hive.hive_no })}</p>}
           </div>
           <button onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white">✕</button>
@@ -114,8 +119,8 @@ Format:
           {!supported && (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">⚠️</div>
-              <p className="text-sm text-gray-300 mb-1">Tarayıcınız ses tanımayı desteklemiyor.</p>
-              <p className="text-xs text-gray-500">Chrome veya Edge kullanın.</p>
+              <p className="text-sm text-gray-300 mb-1">{t('voice.not_supported')}.</p>
+              <p className="text-xs text-gray-500">{t('voice.use_chrome_edge')}</p>
             </div>
           )}
 
@@ -123,15 +128,15 @@ Format:
             <div className="text-center py-4">
               <div className="text-xs text-gray-500 mb-5 p-3 rounded-xl text-left leading-relaxed"
                 style={{ background: '#2a2a2a' }}>
-                💡 <strong className="text-gray-300">Örnek konuşma:</strong><br/>
-                <span className="italic">"Bal stoğu iyi yaklaşık 8 kilo. Kuluçka güçlü, ana arı görüldü. Hırçınlık yok. Varroa belirtisi gözlemlenmedi. Şeker şurubu verdim."</span>
+                💡 <strong className="text-gray-300">{t('voice.example_label')}</strong><br/>
+                <span className="italic">{t('voice.example_text')}</span>
               </div>
               <button onClick={startRecording}
                 className="w-24 h-24 rounded-full flex items-center justify-center mx-auto text-4xl transition-all hover:scale-110 active:scale-95"
                 style={{ background: 'rgba(245,197,24,0.15)', border: '3px solid #f5c518' }}>
                 🎙️
               </button>
-              <p className="text-xs text-gray-500 mt-3">Başlatmak için dokun</p>
+              <p className="text-xs text-gray-500 mt-3">{t('voice.tap_to_start')}</p>
             </div>
           )}
 
@@ -151,10 +156,10 @@ Format:
                 <p className="text-sm text-gray-200 leading-relaxed">
                   {transcript}
                   <span className="text-gray-500 italic">{interimText}</span>
-                  {!transcript && !interimText && <span className="text-gray-600 animate-pulse">Dinleniyor...</span>}
+                  {!transcript && !interimText && <span className="text-gray-600 animate-pulse">{t('voice.listening')}</span>}
                 </p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Durdurmak için butona bas</p>
+              <p className="text-xs text-gray-500 mt-2">{t('voice.tap_to_stop')}</p>
             </div>
           )}
 
@@ -166,30 +171,30 @@ Format:
                     style={{ animationDelay: `${i*0.15}s` }}/>
                 ))}
               </div>
-              <p className="text-sm text-gray-300 font-semibold">AI analiz ediyor...</p>
-              <p className="text-xs text-gray-500 mt-1">Kovan bilgileri çıkarılıyor</p>
+              <p className="text-sm text-gray-300 font-semibold">{t('voice.ai_analyzing')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('voice.extracting_info')}</p>
             </div>
           )}
 
           {phase === 'preview' && detectedFields && (
             <div>
               <div className="rounded-xl p-3 mb-4" style={{ background: '#2a2a2a' }}>
-                <p className="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-wide">Ses kaydı</p>
+                <p className="text-[10px] text-gray-500 mb-1 font-bold uppercase tracking-wide">{t('voice.voice_recording_label')}</p>
                 <p className="text-xs text-gray-300 italic leading-relaxed">"{transcript}"</p>
               </div>
 
-              <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">Tespit Edilen Bilgiler</p>
+              <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">{t('voice.detected_info')}</p>
               <div className="space-y-1.5 mb-5">
                 {[
-                  ['🍯','Bal Stoğu', detectedFields.honey_stock_kg != null ? `${detectedFields.honey_stock_kg} kg` : null],
-                  ['🥚','Kuluçka', detectedFields.brood_status],
-                  ['💪','Koloni', detectedFields.colony_strength],
-                  ['😤','Hırçınlık', detectedFields.aggressiveness],
-                  ['🖼️','Çerçeve', detectedFields.frame_count != null ? `${detectedFields.frame_count} adet` : null],
-                  ['👑','Ana Arı', detectedFields.queen_seen != null ? (detectedFields.queen_seen ? 'Görüldü ✓' : 'Görülmedi ✗') : null],
-                  ['💊','Hastalık', detectedFields.disease_signs != null ? (detectedFields.disease_signs ? (detectedFields.disease_name || 'Belirti var') : 'Yok ✓') : null],
-                  ['🌿','Besleme', detectedFields.feed_given != null ? (detectedFields.feed_given ? (detectedFields.feed_type || 'Verildi') : 'Verilmedi') : null],
-                  ['📝','Notlar', detectedFields.notes],
+                  ['🍯', t('hive_form.honey_stock'), detectedFields.honey_stock_kg != null ? `${detectedFields.honey_stock_kg} kg` : null],
+                  ['🥚', t('reports.col_brood'), detectedFields.brood_status],
+                  ['💪', t('reports.col_colony'), detectedFields.colony_strength],
+                  ['😤', t('hive_form.aggression'), detectedFields.aggressiveness],
+                  ['🖼️', t('hive_form_tab.frame_count'), detectedFields.frame_count != null ? `${detectedFields.frame_count} ${t('apiaries_page.unit_count')}` : null],
+                  ['👑', t('voice.queen_label'), detectedFields.queen_seen != null ? (detectedFields.queen_seen ? t('voice.seen') : t('voice.not_seen')) : null],
+                  ['💊', t('reports.col_disease'), detectedFields.disease_signs != null ? (detectedFields.disease_signs ? (detectedFields.disease_name || t('voice.signs_present')) : t('voice.none_ok')) : null],
+                  ['🌿', t('feeding.title'), detectedFields.feed_given != null ? (detectedFields.feed_given ? (detectedFields.feed_type || t('voice.given')) : t('voice.not_given')) : null],
+                  ['📝', t('common.notes'), detectedFields.notes],
                 ].filter(([,,v]) => v != null).map(([icon, label, value]) => (
                   <div key={label} className="flex items-center gap-2.5 px-3 py-2 rounded-lg"
                     style={{ background: 'rgba(245,197,24,0.08)', border: '1px solid rgba(245,197,24,0.18)' }}>
@@ -201,8 +206,8 @@ Format:
               </div>
 
               <div className="flex gap-2">
-                <button onClick={reset} className="btn-ghost flex-1 justify-center text-sm">🔄 Tekrar</button>
-                <button onClick={applyFields} className="btn-gold flex-1 justify-center text-sm">✅ Forma Uygula</button>
+                <button onClick={reset} className="btn-ghost flex-1 justify-center text-sm">🔄 {t('voice.retry')}</button>
+                <button onClick={applyFields} className="btn-gold flex-1 justify-center text-sm">✅ {t('voice.apply_to_form')}</button>
               </div>
             </div>
           )}
