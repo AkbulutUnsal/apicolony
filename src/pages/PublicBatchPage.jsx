@@ -4,6 +4,20 @@ import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../components/ui/LanguageSwitcher'
 import { supabase } from '../lib/supabase'
 
+const PUBLIC_HONEY_TYPE_KEYS = {
+  'Çiçek Balı': 'harvest_page.honey_flower', 'Yayla Balı': 'batches_page.honey_plateau',
+  'Orman Balı': 'harvest_page.honey_forest', 'Kestane Balı': 'harvest_page.honey_chestnut',
+  'Akasya Balı': 'harvest_page.honey_acacia', 'Kekik Balı': 'harvest_page.honey_thyme',
+  'Ihlamur Balı': 'harvest_page.honey_linden', 'Çam Balı': 'harvest_page.honey_pine',
+  'Kafkas Flora Balı': 'batches_page.honey_caucasus', 'Diğer': 'reports.honey_type_other',
+}
+const PUBLIC_FLORA_TYPE_KEYS = {
+  'Çiçek / Karma': 'apiaries_page.flora_mixed', 'Orman / Çam': 'apiaries_page.flora_forest_pine',
+  'Kestane': 'harvest_page.honey_chestnut', 'Akasya': 'harvest_page.honey_acacia',
+  'Kekik': 'harvest_page.honey_thyme', 'Ihlamur': 'harvest_page.honey_linden',
+  'Yayla': 'apiaries_page.flora_plateau', 'Narenciye': 'apiaries_page.flora_citrus', 'Diğer': 'reports.honey_type_other',
+}
+
 export default function PublicBatchPage() {
   const { batchNo } = useParams()
   const { t } = useTranslation()
@@ -54,9 +68,9 @@ export default function PublicBatchPage() {
       {/* Header */}
       <div className="px-6 pt-10 pb-6 text-center">
         <div className="text-5xl mb-3">🍯</div>
-        <h1 className="text-3xl font-black text-white mb-1">{batch.honey_type}</h1>
+        <h1 className="text-3xl font-black text-white mb-1">{t(PUBLIC_HONEY_TYPE_KEYS[batch.honey_type] || 'reports.honey_type_other')}</h1>
         <p className="text-yellow-400 text-sm font-semibold tracking-widest uppercase">
-          {batch.producer_name || 'Doğal Bal'}
+          {batch.producer_name || t('public_batch.natural_honey')}
         </p>
       </div>
 
@@ -82,11 +96,11 @@ export default function PublicBatchPage() {
         <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="px-4 py-2.5 text-xs font-bold tracking-widest text-yellow-400 uppercase"
             style={{ background: 'rgba(245,197,24,0.08)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            Ürün Bilgileri
+            {t('public_batch.product_info')}
           </div>
           <div className="divide-y" style={{ divideColor: 'rgba(255,255,255,0.05)' }}>
             <InfoRow icon="🏷️" label={t('public_batch.batch_no')} value={batch.batch_no} mono />
-            <InfoRow icon="🍯" label={t('public_batch.honey_type')} value={batch.honey_type} />
+            <InfoRow icon="🍯" label={t('public_batch.honey_type')} value={t(PUBLIC_HONEY_TYPE_KEYS[batch.honey_type] || 'reports.honey_type_other')} />
             {harvestDate && <InfoRow icon="📅" label={t('public_batch.harvest_date')} value={harvestDate} />}
             {packageDate && <InfoRow icon="📦" label={t('public_batch.package_date')} value={packageDate} />}
             {batch.total_kg && <InfoRow icon="⚖️" label={t('public_batch.total_kg')} value={`${batch.total_kg} kg`} />}
@@ -99,14 +113,14 @@ export default function PublicBatchPage() {
           <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="px-4 py-2.5 text-xs font-bold tracking-widest text-yellow-400 uppercase"
               style={{ background: 'rgba(245,197,24,0.08)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              Üretim Bölgesi
+              {t('public_batch.production_region')}
             </div>
             <div className="divide-y" style={{ divideColor: 'rgba(255,255,255,0.05)' }}>
               {apiary.name && <InfoRow icon="🌿" label={t('public_batch.apiary_name')} value={apiary.name} />}
               {(apiary.location || apiary.region) && (
                 <InfoRow icon="📍" label={t('public_batch.location')} value={[apiary.location, apiary.region].filter(Boolean).join(', ')} />
               )}
-              {apiary.flora_type && <InfoRow icon="🌸" label={t('public_batch.flora')} value={apiary.flora_type} />}
+              {apiary.flora_type && <InfoRow icon="🌸" label={t('public_batch.flora')} value={t(PUBLIC_FLORA_TYPE_KEYS[apiary.flora_type] || 'reports.honey_type_other')} />}
               {apiary.altitude_m && <InfoRow icon="⛰️" label={t('public_batch.altitude')} value={`${apiary.altitude_m} m`} />}
             </div>
           </div>
@@ -118,7 +132,7 @@ export default function PublicBatchPage() {
             style={{ background: 'rgba(39,174,96,0.08)', border: '1px solid rgba(39,174,96,0.2)' }}>
             <span className="text-xl flex-shrink-0">✅</span>
             <div>
-              <div className="text-xs font-bold text-green-400 mb-1 uppercase tracking-wide">Kalite & Analiz</div>
+              <div className="text-xs font-bold text-green-400 mb-1 uppercase tracking-wide">{t('public_batch.quality_title')}</div>
               <p className="text-sm text-gray-200">{batch.analysis_note}</p>
             </div>
           </div>
@@ -142,9 +156,9 @@ export default function PublicBatchPage() {
 
         {/* Footer */}
         <div className="text-center pt-4">
-          <div className="text-xs text-gray-600 mb-2">Dijital izlenebilirlik ile doğrulanan doğal bal</div>
-          <div className="text-yellow-600 text-sm font-black tracking-wider">🐝 ApiColony</div>
-          <div className="text-xs text-gray-700 mt-1">Kovandan Kavanoza</div>
+          <div className="text-xs text-gray-600 mb-2">{t('public_batch.footer_tagline')}</div>
+          <div className="text-yellow-600 text-sm font-black tracking-wider">{t('public_batch.brand')}</div>
+          <div className="text-xs text-gray-700 mt-1">{t('public_batch.brand_sub')}</div>
         </div>
       </div>
     </div>

@@ -19,10 +19,10 @@ export default function Navbar({ onAddHive, addingHive }) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
 
-  const displayName = activeWorker?.full_name || profile?.full_name || 'Kullanıcı'
+  const displayName = activeWorker?.full_name || profile?.full_name || t('navbar.default_user')
   const displayRole = activeWorker
-    ? ({ yardimci: 'Yardımcı', cirak: 'Çırak', sofor: 'Şoför' }[activeWorker.role] || activeWorker.role)
-    : 'Arıcı'
+    ? ({ yardimci: t('navbar.role_helper'), cirak: t('who_working.role_apprentice'), sofor: t('who_working.role_driver') }[activeWorker.role] || activeWorker.role)
+    : t('who_working.beekeeper')
 
   const navLinks = [
     { path: '/dashboard', label: t('nav.dashboard') },
@@ -77,11 +77,11 @@ export default function Navbar({ onAddHive, addingHive }) {
         <div className="flex items-center gap-2">
           {onAddHive && (
             <button className="btn-gold text-sm flex" onClick={onAddHive} disabled={addingHive}>
-              {addingHive ? '⏳' : '+'} Yeni Kovan
+              {addingHive ? '⏳' : '+'} {t('navbar.new_hive')}
             </button>
           )}
           <button className="btn-ghost text-sm hidden sm:flex" onClick={() => navigate('/tara')}>
-            📷 Tara
+            📷 {t('navbar.scan')}
           </button>
           <button className="md:hidden btn-ghost px-2.5" onClick={() => setOpen(!open)}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -122,12 +122,12 @@ export default function Navbar({ onAddHive, addingHive }) {
 
                   <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                     <div className="font-bold text-sm">{displayName}</div>
-                    <div className="text-xs text-gold mt-0.5">{displayRole} · 🟢 Aktif</div>
+                    <div className="text-xs text-gold mt-0.5">{displayRole} · 🟢 {t('navbar.active')}</div>
                   </div>
 
                   {/* Dil Seçici */}
                   <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">Dil / Language</div>
+                    <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">{t('navbar.language')}</div>
                     <div className="flex gap-2">
                       {LANGUAGES.map(lang => (
                         <button
@@ -147,11 +147,11 @@ export default function Navbar({ onAddHive, addingHive }) {
                   <div className="py-1">
                     <button onClick={() => { navigate('/kim-calisiyor'); setOpen(false) }}
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white flex items-center gap-2 transition-colors">
-                      🔄 Çalışan Değiştir
+                      🔄 {t('navbar.switch_worker')}
                     </button>
                     <button onClick={handleSignOut}
                       className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-dark-50 flex items-center gap-2 transition-colors">
-                      ↩ Çıkış Yap
+                      ↩ {t('navbar.sign_out')}
                     </button>
                   </div>
                 </div>

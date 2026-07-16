@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useNotifications } from '../../hooks/useNotifications'
 
 const typeColors = {
@@ -9,6 +10,7 @@ const typeColors = {
 }
 
 export default function NotificationBell() {
+  const { t } = useTranslation()
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -44,17 +46,17 @@ export default function NotificationBell() {
             <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
               style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               <div>
-                <span className="font-black text-sm">Bildirimler</span>
+                <span className="font-black text-sm">{t('notif_bell.title')}</span>
                 {unreadCount > 0 && (
                   <span className="ml-2 px-1.5 py-0.5 bg-red-500 rounded text-[10px] font-bold text-white">
-                    {unreadCount} yeni
+                    {t('notif_bell.new_count', { count: unreadCount })}
                   </span>
                 )}
               </div>
               {unreadCount > 0 && (
                 <button onClick={markAllRead}
                   className="text-xs text-gold hover:underline">
-                  Tümünü okundu işaretle
+                  {t('notif_bell.mark_all_read')}
                 </button>
               )}
             </div>
@@ -64,7 +66,7 @@ export default function NotificationBell() {
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                   <span className="text-3xl mb-2">✅</span>
-                  <span className="text-sm">Hiç bildirim yok</span>
+                  <span className="text-sm">{t('notif_bell.no_notifications')}</span>
                 </div>
               ) : (
                 notifications.map(notif => {
@@ -107,7 +109,7 @@ export default function NotificationBell() {
               <div className="px-4 py-2.5 flex-shrink-0 text-center"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 <span className="text-xs text-gray-500">
-                  {notifications.length} bildirim · Bakım yapıldıkça otomatik temizlenir
+                  {t('notif_bell.footer_count', { count: notifications.length })}
                 </span>
               </div>
             )}

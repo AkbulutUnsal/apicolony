@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
@@ -8,9 +9,10 @@ import { TabAnaAri, TabBallik, TabHastalik, TabBakim } from '../components/forms
 import HiveQRCode from '../components/hive/HiveQRCode'
 import HivePhotos from '../components/hive/HivePhotos'
 
-const TABS = ['Genel', 'Ana Arı', 'Ballıklar', 'Hastalık', 'Bakımlar', 'Fotoğraflar', 'QR Kod']
+const TAB_KEYS = ['hive_form.tab_general', 'hive_form.tab_queen', 'hive_form.tab_supers', 'hive_form.tab_disease', 'hive_form.tab_maintenance', 'hive_form.tab_photos', 'hive_form.tab_qr']
 
 export default function HiveFormPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -23,7 +25,7 @@ export default function HiveFormPage() {
 
   async function fetchHive() {
     const { data, error } = await supabase.from('hives').select('*').eq('id', id).single()
-    if (error) { toast.error('Kovan bulunamadı'); navigate('/panel') }
+    if (error) { toast.error(t('hive_form_page.hive_not_found')); navigate('/panel') }
     else { setHive(data); setLoading(false) }
   }
 
@@ -59,15 +61,15 @@ export default function HiveFormPage() {
 
     const { error } = await supabase
       .from('hives').update({ ...hive, color_status, updated_at: new Date().toISOString() }).eq('id', id)
-    if (error) toast.error('Kaydedilemedi: ' + error.message)
-    else { toast.success('Kovan kaydedildi!'); setHive(prev => ({ ...prev, color_status })) }
+    if (error) toast.error(t('common.error_save') + ': ' + error.message)
+    else { toast.success(t('hive_form.saved')); setHive(prev => ({ ...prev, color_status })) }
     setSaving(false)
   }
 
   async function archiveHive() {
-    if (!confirm('Bu kovanı arşivlemek istediğinize emin misiniz?')) return
+    if (!confirm(t('hive_form_page.confirm_archive'))) return
     await supabase.from('hives').update({ status: 'arsiv' }).eq('id', id)
-    toast.success('Kovan arşivlendi')
+    toast.success(t('hive_form.archived'))
     navigate('/panel')
   }
 
@@ -83,30 +85,30 @@ export default function HiveFormPage() {
     <div className="min-h-screen bg-dark-400 flex flex-col">
       <div className="bg-dark-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 flex-shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <button className="btn-ghost" onClick={() => navigate('/panel')}>← Panele Geri Dön</button>
-        <h1 className="text-gold font-black text-base">{hive.hive_no} Kovan Bilgi Formu</h1>
+        <button className="btn-ghost" onClick={() => navigate('/panel')}>{t('hive_form.back')}</button>
+        <h1 className="text-gold font-black text-base">{hive.hive_no} {t('hive_form.title')}</h1>
         <div className="flex gap-2.5">
           <button className="btn-gold" onClick={saveHive} disabled={saving}>
-            💾 {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            💾 {saving ? t('hive_form_page.saving_short') : t('hive_form_page.save_short')}
           </button>
-          <button className="btn-ghost" onClick={archiveHive}>📋 Arşivle</button>
+          <button className="btn-ghost" onClick={archiveHive}>📋 {t('hive_form_page.archive_short')}</button>
         </div>
       </div>
 
       {isWarning && (
         <div className="warn-banner">
-          <div className="text-gold font-bold text-sm">⚠ Bakım Gerekli</div>
-          <p className="text-gray-300 text-xs mt-1">Bal stoğu kritik ({hive.honey_stock_kg} kg). Besleme gerekebilir.</p>
+          <div className="text-gold font-bold text-sm">⚠ {t('reports.kpi_needs_maintenance')}</div>
+          <p className="text-gray-300 text-xs mt-1">{t('hive_form_page.honey_critical_warning', { kg: hive.honey_stock_kg })}</p>
         </div>
       )}
 
       <div className="flex mx-6 mt-4 overflow-x-auto flex-shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        {TABS.map((tab, i) => (
-          <button key={tab}
+        {TAB_KEYS.map((key, i) => (
+          <button key={key}
             className={`tab-btn whitespace-nowrap ${activeTab === i ? 'active' : ''}`}
             onClick={() => setActiveTab(i)}>
-            {tab}
+            {t(key)}
           </button>
         ))}
       </div>

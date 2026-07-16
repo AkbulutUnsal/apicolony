@@ -400,7 +400,8 @@
     "producer_label": "Üretici",
     "footer_tagline": "Dijital izlenebilirlik ile doğrulanan doğal bal",
     "brand": "🐝 ApiColony",
-    "brand_sub": "Kovandan Kavanoza"
+    "brand_sub": "Kovandan Kavanoza",
+    "natural_honey": "Doğal Bal"
   },
   "workers": {
     "title": "Çalışan Yönetimi",
@@ -436,7 +437,8 @@
     "color_status": "RENK DURUMU",
     "notes": "NOTLAR",
     "saved": "Kovan kaydedildi",
-    "archived": "Kovan arşivlendi"
+    "archived": "Kovan arşivlendi",
+    "tab_qr": "QR Kod"
   },
   "notifications": {
     "no_inspection": "{{hive}} hiç incelenmedi",
@@ -894,5 +896,58 @@
     "max_size_formats": "Maks 5MB · JPG, PNG, WEBP",
     "hive_photo_alt": "Kovan fotoğrafı",
     "preview_alt": "Önizleme"
+  },
+  "hive_form_page": {
+    "hive_not_found": "Kovan bulunamadı",
+    "confirm_archive": "Bu kovanı arşivlemek istediğinize emin misiniz?",
+    "saving_short": "Kaydediliyor...",
+    "save_short": "Kaydet",
+    "archive_short": "Arşivle",
+    "honey_critical_warning": "Bal stoğu kritik ({{kg}} kg). Besleme gerekebilir."
+  },
+  "panel_page": {
+    "hives_load_error": "Kovanlar yüklenemedi",
+    "supers_load_error": "Ballık bilgisi yüklenemedi",
+    "hive_add_error": "Kovan eklenemedi",
+    "hive_added": "{{hive}} kovanı eklendi",
+    "title": "Kovan Paneli",
+    "no_hives_yet": "Henüz kovan yok.",
+    "no_hives_in_apiary": "Bu arılıkta kovan yok.",
+    "add_first_hive": "İlk Kovanı Ekle"
+  },
+  "hive_qr": {
+    "qr_error": "QR oluşturulamadı",
+    "downloaded": "QR kod indirildi!",
+    "popup_blocked": "Popup engellendi, tarayıcı ayarlarını kontrol et",
+    "title": "QR Kod",
+    "print_tagline": "Arı Koloni Takip",
+    "description": "Bu kodu kovana yapıştır, telefonla tara, hızlıca forma ulaş.",
+    "download": "İndir (PNG)",
+    "print": "Yazdır"
+  },
+  "navbar": {
+    "default_user": "Kullanıcı",
+    "role_helper": "Yardımcı",
+    "new_hive": "Yeni Kovan",
+    "scan": "Tara",
+    "active": "Aktif",
+    "language": "Dil / Language",
+    "switch_worker": "Çalışan Değiştir",
+    "sign_out": "Çıkış Yap"
+  },
+  "nfc": {
+    "not_supported": "Bu tarayıcı NFC desteklemiyor. Android Chrome gerekli.",
+    "bring_tag_closer": "NFC etiketi kovana yaklaştır...",
+    "invalid_tag": "Geçersiz NFC etiketi",
+    "read_error": "NFC okuma hatası",
+    "scan_tag": "NFC Etiket Tara",
+    "scanning": "Taranıyor..."
+  },
+  "notif_bell": {
+    "title": "Bildirimler",
+    "new_count": "{{count}} yeni",
+    "mark_all_read": "Tümünü okundu işaretle",
+    "no_notifications": "Hiç bildirim yok",
+    "footer_count": "{{count}} bildirim · Bakım yapıldıkça otomatik temizlenir"
   }
 }

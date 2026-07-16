@@ -1,14 +1,16 @@
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react'
 import toast from 'react-hot-toast'
 
 export default function HiveQRCode({ hive }) {
+  const { t } = useTranslation()
   const canvasRef = useRef(null)
   const qrValue = `${window.location.origin}/kovan/${hive.id}`
 
   function downloadQR() {
     const canvas = canvasRef.current?.querySelector('canvas')
-    if (!canvas) { toast.error('QR oluşturulamadı'); return }
+    if (!canvas) { toast.error(t('hive_qr.qr_error')); return }
 
     // Kovan no'yu da ekleyerek yeni canvas oluştur
     const out = document.createElement('canvas')
@@ -37,21 +39,21 @@ export default function HiveQRCode({ hive }) {
     link.download = `${hive.hive_no}-qr.png`
     link.href = out.toDataURL('image/png')
     link.click()
-    toast.success('QR kod indirildi!')
+    toast.success(t('hive_qr.downloaded'))
   }
 
   function printQR() {
     const canvas = canvasRef.current?.querySelector('canvas')
-    if (!canvas) { toast.error('QR oluşturulamadı'); return }
+    if (!canvas) { toast.error(t('hive_qr.qr_error')); return }
 
     const dataUrl = canvas.toDataURL('image/png')
     const w = window.open('', '_blank', 'width=400,height=500')
-    if (!w) { toast.error('Popup engellendi, tarayıcı ayarlarını kontrol et'); return }
+    if (!w) { toast.error(t('hive_qr.popup_blocked')); return }
 
     w.document.write(`<!DOCTYPE html>
 <html>
 <head>
-  <title>${hive.hive_no} QR Kodu</title>
+  <title>${hive.hive_no} ${t('hive_qr.title')}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -74,9 +76,9 @@ export default function HiveQRCode({ hive }) {
 </head>
 <body>
   <div class="wrap">
-    <img src="${dataUrl}" alt="QR Kod"/>
+    <img src="${dataUrl}" alt="${t('hive_qr.title')}"/>
     <h2>${hive.hive_no}</h2>
-    <p>ApiColony – Arı Koloni Takip</p>
+    <p>ApiColony – ${t('hive_qr.print_tagline')}</p>
   </div>
   <script>
     window.onload = function() {
@@ -90,9 +92,9 @@ export default function HiveQRCode({ hive }) {
 
   return (
     <div className="card mt-4">
-      <h3 className="font-black text-base mb-1">QR Kod</h3>
+      <h3 className="font-black text-base mb-1">{t('hive_qr.title')}</h3>
       <p className="text-xs text-gray-400 mb-4">
-        Bu kodu kovana yapıştır, telefonla tara, hızlıca forma ulaş.
+        {t('hive_qr.description')}
       </p>
 
       <div className="flex flex-col items-center gap-4">
@@ -114,10 +116,10 @@ export default function HiveQRCode({ hive }) {
 
         <div className="flex gap-2 w-full">
           <button className="btn-gold flex-1 justify-center text-xs py-2.5" onClick={downloadQR}>
-            ⬇ İndir (PNG)
+            ⬇ {t('hive_qr.download')}
           </button>
           <button className="btn-ghost flex-1 justify-center text-xs py-2.5" onClick={printQR}>
-            🖨 Yazdır
+            🖨 {t('hive_qr.print')}
           </button>
         </div>
       </div>

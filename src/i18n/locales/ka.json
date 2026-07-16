@@ -400,7 +400,8 @@
     "producer_label": "მწარმოებელი",
     "footer_tagline": "ციფრული კვალი - ბუნებრივი თაფლი",
     "brand": "🐝 ApiColony",
-    "brand_sub": "სკადან ქილამდე"
+    "brand_sub": "სკადან ქილამდე",
+    "natural_honey": "ბუნებრივი თაფლი"
   },
   "workers": {
     "title": "თანამშრომლების მართვა",
@@ -436,7 +437,8 @@
     "color_status": "ფერის სტატუსი",
     "notes": "შენიშვნები",
     "saved": "სკა შეინახა",
-    "archived": "სკა დაარქივდა"
+    "archived": "სკა დაარქივდა",
+    "tab_qr": "QR კოდი"
   },
   "notifications": {
     "no_inspection": "{{hive}} არასდროს შემოწმებულა",
@@ -894,5 +896,58 @@
     "max_size_formats": "მაქს 5MB · JPG, PNG, WEBP",
     "hive_photo_alt": "სკის ფოტო",
     "preview_alt": "გადახედვა"
+  },
+  "hive_form_page": {
+    "hive_not_found": "სკა ვერ მოიძებნა",
+    "confirm_archive": "დარწმუნებული ხართ, რომ გსურთ ამ სკის დაარქივება?",
+    "saving_short": "ინახება...",
+    "save_short": "შენახვა",
+    "archive_short": "დაარქივება",
+    "honey_critical_warning": "თაფლის მარაგი კრიტიკულია ({{kg}} კგ). შეიძლება საჭირო გახდეს კვება."
+  },
+  "panel_page": {
+    "hives_load_error": "სკები ვერ ჩაიტვირთა",
+    "supers_load_error": "ბალიკის ინფორმაცია ვერ ჩაიტვირთა",
+    "hive_add_error": "სკა ვერ დაემატა",
+    "hive_added": "სკა {{hive}} დაემატა",
+    "title": "სკის პანელი",
+    "no_hives_yet": "ჯერ სკა არ არის.",
+    "no_hives_in_apiary": "ამ საფუტკრეში სკა არ არის.",
+    "add_first_hive": "პირველი სკის დამატება"
+  },
+  "hive_qr": {
+    "qr_error": "QR კოდი ვერ შეიქმნა",
+    "downloaded": "QR კოდი გადმოწერილია!",
+    "popup_blocked": "Popup დაბლოკილია, შეამოწმეთ ბრაუზერის პარამეტრები",
+    "title": "QR კოდი",
+    "print_tagline": "ფუტკრის კოლონიის მართვა",
+    "description": "მიაკრეთ ეს კოდი სკას, დაასკანერეთ ტელეფონით და სასწრაფოდ გადადით ფორმაზე.",
+    "download": "გადმოწერა (PNG)",
+    "print": "დაბეჭდვა"
+  },
+  "navbar": {
+    "default_user": "მომხმარებელი",
+    "role_helper": "თანაშემწე",
+    "new_hive": "ახალი სკა",
+    "scan": "სკანირება",
+    "active": "აქტიური",
+    "language": "ენა / Language",
+    "switch_worker": "თანამშრომლის შეცვლა",
+    "sign_out": "გასვლა"
+  },
+  "nfc": {
+    "not_supported": "ეს ბრაუზერი არ უჭერს მხარს NFC-ს. საჭიროა Android Chrome.",
+    "bring_tag_closer": "მიუახლოვეთ NFC ტეგი სკას...",
+    "invalid_tag": "არასწორი NFC ტეგი",
+    "read_error": "NFC წაკითხვის შეცდომა",
+    "scan_tag": "NFC ტეგის სკანირება",
+    "scanning": "სკანირდება..."
+  },
+  "notif_bell": {
+    "title": "შეტყობინებები",
+    "new_count": "{{count}} ახალი",
+    "mark_all_read": "ყველას მონიშვნა წაკითხულად",
+    "no_notifications": "შეტყობინება არ არის",
+    "footer_count": "{{count}} შეტყობინება · ავტომატურად წაიშლება მოვლის შესრულებისას"
   }
 }
