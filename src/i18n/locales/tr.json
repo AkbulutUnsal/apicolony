@@ -507,7 +507,13 @@
     "brood_frames": "Kuluçka Çerçevesi",
     "notes_label": "Notlar",
     "new_season_record_suffix": "Kaydı",
-    "maintenance_added": "Bakım kaydı eklendi"
+    "maintenance_added": "Bakım kaydı eklendi",
+    "disease_unified_note": "Bu kayıtlar üstteki \"Tedavi\" sayfasıyla ortaktır — buradan eklediğin de orada görünür.",
+    "confirm_delete_treatment": "Bu tedavi kaydını silmek istediğinize emin misiniz?",
+    "confirm_delete_maintenance": "Bu bakım kaydını silmek istediğinize emin misiniz?",
+    "dose_label": "Doz",
+    "application_method": "Uygulama Yöntemi",
+    "repeat_date": "Tekrar Tarihi"
   },
   "ai_advisor": {
     "title": "AI Danışman",

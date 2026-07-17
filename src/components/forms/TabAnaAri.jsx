@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
+import { DISEASE_TYPES, DISEASE_TYPE_KEYS, METHOD_KEYS, SEVERITY_LEVELS, APPLICATION_METHODS, severityOptLabel, diseaseTypeLabel } from '../../pages/TreatmentPage'
 
 // ── ANA ARI ─────────────────────────────────────────────
 export function TabAnaAri({ hiveId }) {
@@ -141,7 +143,7 @@ export function TabBallik({ hiveId }) {
               </div>
               <div>
                 <label className="field-label">{t('hive_tabs.frame_count')}</label>
-                <input type="number" value={newSuper.frame_count} onChange={e => setNewSuper(p => ({ ...p, frame_count: parseInt(e.target.value) }))} />
+                <input type="number" onFocus={e => e.target.select()} value={newSuper.frame_count} onChange={e => setNewSuper(p => ({ ...p, frame_count: parseInt(e.target.value) }))} />
               </div>
               <div>
                 <label className="field-label">{t('hive_tabs.added_date')}</label>
@@ -161,25 +163,83 @@ export function TabBallik({ hiveId }) {
   )
 }
 
-// ── HASTALIK ─────────────────────────────────────────────
+// ── HASTALIK / TEDAVİ (treatment_records ile birleşik) ─────────────────────
+// Not: Üstteki genel "Tedavi" menüsüyle AYNI tabloyu kullanır (treatment_records).
+// Buradan eklenen kayıt Tedavi sayfasında da görünür, tersi de geçerlidir.
+const EMPTY_TREATMENT = {
+  treatment_date: new Date().toISOString().slice(0, 10),
+  disease_type: 'Varroa', severity: 'Orta', product_name: '', dose: '',
+  application_method: 'Damlama', withdrawal_days: '', repeat_date: '', notes: ''
+}
+
 export function TabHastalik({ hiveId }) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
-  const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({ disease_name: '', severity: 'Orta', treatment: '', treatment_date: new Date().toISOString().slice(0,10) })
+  const [editingId, setEditingId] = useState(null) // null = kapalı, 'new' = yeni ekleme, id = düzenleme
+  const [form, setForm] = useState(EMPTY_TREATMENT)
 
-  useEffect(() => {
-    supabase.from('disease_records').select('*').eq('hive_id', hiveId).order('treatment_date', { ascending: false })
-      .then(({ data }) => { setRecords(data || []); setLoading(false) })
-  }, [hiveId])
+  useEffect(() => { fetchRecords() }, [hiveId])
 
-  async function addRecord() {
-    const { data, error } = await supabase.from('disease_records').insert({ ...form, hive_id: hiveId }).select().single()
-    if (error) { toast.error(t('hive_tabs.error_add_failed')); return }
-    setRecords(prev => [data, ...prev])
-    setAdding(false)
-    toast.success(t('hive_tabs.disease_record_added'))
+  async function fetchRecords() {
+    const { data } = await supabase.from('treatment_records').select('*').eq('hive_id', hiveId).order('treatment_date', { ascending: false })
+    setRecords(data || [])
+    setLoading(false)
+  }
+
+  function startAdd() {
+    setForm(EMPTY_TREATMENT)
+    setEditingId('new')
+  }
+
+  function startEdit(rec) {
+    setForm({
+      treatment_date: rec.treatment_date || '',
+      disease_type: rec.disease_type || 'Varroa',
+      severity: rec.severity || 'Orta',
+      product_name: rec.product_name || '',
+      dose: rec.dose || '',
+      application_method: rec.application_method || 'Damlama',
+      withdrawal_days: rec.withdrawal_days ?? '',
+      repeat_date: rec.repeat_date || '',
+      notes: rec.notes || ''
+    })
+    setEditingId(rec.id)
+  }
+
+  async function saveRecord() {
+    const payload = {
+      hive_id: hiveId,
+      user_id: user.id,
+      treatment_date: form.treatment_date,
+      disease_type: form.disease_type,
+      severity: form.severity || null,
+      product_name: form.product_name.trim() || null,
+      dose: form.dose.trim() || null,
+      application_method: form.application_method || null,
+      withdrawal_days: form.withdrawal_days ? parseInt(form.withdrawal_days) : null,
+      repeat_date: form.repeat_date || null,
+      notes: form.notes.trim() || null
+    }
+    if (editingId === 'new') {
+      const { error } = await supabase.from('treatment_records').insert(payload)
+      if (error) { toast.error(t('hive_tabs.error_add_failed')); return }
+      toast.success(t('hive_tabs.disease_record_added'))
+    } else {
+      const { error } = await supabase.from('treatment_records').update(payload).eq('id', editingId)
+      if (error) { toast.error(t('common.error_save')); return }
+      toast.success(t('common.saved'))
+    }
+    setEditingId(null)
+    fetchRecords()
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm(t('hive_tabs.confirm_delete_treatment'))) return
+    await supabase.from('treatment_records').delete().eq('id', id)
+    setRecords(prev => prev.filter(r => r.id !== id))
+    toast.success(t('common.deleted'))
   }
 
   if (loading) return <Loader />
@@ -188,65 +248,113 @@ export function TabHastalik({ hiveId }) {
     <div className="p-6">
       <div className="card">
         <h2 className="text-lg font-black mb-1">{t('hive_tabs.disease_title')}</h2>
-        <p className="text-sm text-gray-400 mb-5">{t('hive_tabs.disease_desc')}</p>
+        <p className="text-sm text-gray-400 mb-1">{t('hive_tabs.disease_desc')}</p>
+        <p className="text-xs text-gray-500 mb-5">💊 {t('hive_tabs.disease_unified_note')}</p>
 
-        {records.length === 0 && !adding && (
+        {records.length === 0 && editingId === null && (
           <p className="text-center text-gray-500 py-8 text-sm">{t('hive_tabs.no_records_yet')}</p>
         )}
 
         {records.map(rec => (
-          <div key={rec.id} className="bg-dark-100 border border-white/8 rounded-xl px-4 py-3.5 mb-3">
-            <div className="flex justify-between">
-              <span className="font-bold text-sm text-red-400">{rec.disease_name}</span>
-              <span className="text-xs text-gray-400">{new Date(rec.treatment_date).toLocaleDateString('tr-TR')}</span>
+          editingId === rec.id ? (
+            <TreatmentForm key={rec.id} form={form} setForm={setForm} onSave={saveRecord} onCancel={() => setEditingId(null)} t={t} />
+          ) : (
+            <div key={rec.id} className="bg-dark-100 border border-white/8 rounded-xl px-4 py-3.5 mb-3">
+              <div className="flex justify-between items-start gap-2">
+                <div className="min-w-0">
+                  <span className="font-bold text-sm text-red-400">{diseaseTypeLabel(rec.disease_type, t)}</span>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {new Date(rec.treatment_date).toLocaleDateString('tr-TR')} · {t('reports.col_severity')}: {severityOptLabel(rec.severity, t)}
+                    {rec.product_name && ` · ${rec.product_name}`}
+                    {rec.repeat_date && ` · ${t('treatment_page.repeat_colon')} ${new Date(rec.repeat_date).toLocaleDateString('tr-TR')}`}
+                  </div>
+                  {rec.notes && <p className="text-xs text-gray-500 mt-1">{rec.notes}</p>}
+                </div>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button className="w-7 h-7 bg-dark-50 border border-white/10 rounded-lg text-xs" onClick={() => startEdit(rec)}>✏️</button>
+                  <button className="w-7 h-7 bg-dark-50 border border-white/10 rounded-lg text-xs text-red-400 hover:bg-red-500/10 transition-colors" onClick={() => deleteRecord(rec.id)}>🗑</button>
+                </div>
+              </div>
             </div>
-            <div className="text-xs text-gray-400 mt-1">{t('reports.col_severity')}: {rec.severity} · {t('hive_tabs.treatment_label')}: {rec.treatment || '-'}</div>
-          </div>
+          )
         ))}
 
-        {adding ? (
-          <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mb-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="field-label">{t('hive_tabs.disease_name')}</label>
-                <input value={form.disease_name} onChange={e => setForm(p => ({ ...p, disease_name: e.target.value }))} placeholder="Varroa, Nosema..." />
-              </div>
-              <div>
-                <label className="field-label">{t('reports.col_severity')}</label>
-                <select value={form.severity} onChange={e => setForm(p => ({ ...p, severity: e.target.value }))}>
-                  <option>Hafif</option><option>Orta</option><option>Ağır</option>
-                </select>
-              </div>
-              <div>
-                <label className="field-label">{t('hive_tabs.treatment_applied')}</label>
-                <input value={form.treatment} onChange={e => setForm(p => ({ ...p, treatment: e.target.value }))} placeholder="Api Life Var, Okzalik asit..." />
-              </div>
-              <div>
-                <label className="field-label">{t('hive_tabs.treatment_date')}</label>
-                <input type="date" value={form.treatment_date} onChange={e => setForm(p => ({ ...p, treatment_date: e.target.value }))} />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button className="btn-gold" onClick={addRecord}>{t('common.save')}</button>
-              <button className="btn-ghost" onClick={() => setAdding(false)}>{t('common.cancel')}</button>
-            </div>
-          </div>
+        {editingId === 'new' ? (
+          <TreatmentForm form={form} setForm={setForm} onSave={saveRecord} onCancel={() => setEditingId(null)} t={t} />
         ) : (
-          <button className="btn-gold mt-1" onClick={() => setAdding(true)}>+ {t('hive_tabs.new_record_btn')}</button>
+          <button className="btn-gold mt-1" onClick={startAdd}>+ {t('hive_tabs.new_record_btn')}</button>
         )}
       </div>
     </div>
   )
 }
 
+function TreatmentForm({ form, setForm, onSave, onCancel, t }) {
+  const set = (f, v) => setForm(p => ({ ...p, [f]: v }))
+  return (
+    <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="field-label">{t('hive_tabs.treatment_date')}</label>
+          <input type="date" value={form.treatment_date} onChange={e => set('treatment_date', e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">{t('reports.col_disease')}</label>
+          <select value={form.disease_type} onChange={e => set('disease_type', e.target.value)}>
+            {DISEASE_TYPES.map(d => <option key={d} value={d}>{t(DISEASE_TYPE_KEYS[d])}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">{t('reports.col_severity')}</label>
+          <select value={form.severity} onChange={e => set('severity', e.target.value)}>
+            {SEVERITY_LEVELS.map(s => <option key={s} value={s}>{severityOptLabel(s, t)}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">{t('reports.col_product')}</label>
+          <input value={form.product_name} onChange={e => set('product_name', e.target.value)} placeholder={t('treatment_page.product_placeholder')} />
+        </div>
+        <div>
+          <label className="field-label">{t('hive_tabs.dose_label')}</label>
+          <input value={form.dose} onChange={e => set('dose', e.target.value)} placeholder={t('treatment_page.dose_placeholder')} />
+        </div>
+        <div>
+          <label className="field-label">{t('hive_tabs.application_method')}</label>
+          <select value={form.application_method} onChange={e => set('application_method', e.target.value)}>
+            {APPLICATION_METHODS.map(m => <option key={m} value={m}>{t(METHOD_KEYS[m])}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">{t('treatment.withdrawal')}</label>
+          <input type="number" onFocus={e => e.target.select()} value={form.withdrawal_days} onChange={e => set('withdrawal_days', e.target.value)} placeholder={t('treatment.withdrawal_placeholder')} />
+        </div>
+        <div>
+          <label className="field-label">{t('hive_tabs.repeat_date')}</label>
+          <input type="date" value={form.repeat_date} onChange={e => set('repeat_date', e.target.value)} />
+        </div>
+      </div>
+      <div className="mb-3">
+        <label className="field-label">{t('common.notes')}</label>
+        <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} className="resize-none" placeholder={t('treatment_page.extra_notes')} />
+      </div>
+      <div className="flex gap-2">
+        <button className="btn-gold" onClick={onSave}>{t('common.save')}</button>
+        <button className="btn-ghost" onClick={onCancel}>{t('common.cancel')}</button>
+      </div>
+    </div>
+  )
+}
+
 // ── BAKIM ─────────────────────────────────────────────
+const EMPTY_MAINTENANCE = { inspection_date: new Date().toISOString().slice(0,10), colony_strength: 'Orta', honey_frames: 0, brood_frames: 0, feed_given: false, feed_type: '', notes: '' }
+
 export function TabBakim({ hiveId }) {
   const { t } = useTranslation()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeSeason, setActiveSeason] = useState(null)
-  const [adding, setAdding] = useState(null) // season name
-  const [form, setForm] = useState({ inspection_date: new Date().toISOString().slice(0,10), colony_strength: 'Orta', honey_frames: 0, brood_frames: 0, feed_given: false, feed_type: '', notes: '' })
+  const [editingId, setEditingId] = useState(null) // null = kapalı, 'new' = yeni ekleme, id = düzenleme
+  const [form, setForm] = useState(EMPTY_MAINTENANCE)
 
   const SEASONS = ['İlkbahar', 'Yaz', 'Sonbahar', 'Kışlatma']
   const seasonLabel = (s) => ({
@@ -256,23 +364,53 @@ export function TabBakim({ hiveId }) {
     'Kışlatma': t('hive_tabs.season_wintering'),
   }[s] || s)
 
-  useEffect(() => {
-    supabase.from('maintenance_records').select('*').eq('hive_id', hiveId).order('inspection_date', { ascending: false })
-      .then(({ data }) => { setRecords(data || []); setLoading(false) })
-  }, [hiveId])
+  useEffect(() => { fetchRecords() }, [hiveId])
 
-  async function addRecord(season) {
-    const { data, error } = await supabase.from('maintenance_records').insert({ ...form, hive_id: hiveId, season }).select().single()
-    if (error) { toast.error(t('hive_tabs.error_add_failed')); return }
-    setRecords(prev => [data, ...prev])
-    setAdding(null)
-    toast.success(t('hive_tabs.maintenance_added'))
+  async function fetchRecords() {
+    const { data } = await supabase.from('maintenance_records').select('*').eq('hive_id', hiveId).order('inspection_date', { ascending: false })
+    setRecords(data || [])
+    setLoading(false)
+  }
 
-    // Hives tablosunu güncelle — bakım yapıldı = healthy
-    await supabase.from('hives').update({
-      color_status: 'healthy',
-      updated_at: new Date().toISOString()
-    }).eq('id', hiveId)
+  function startAdd(season) {
+    setForm(EMPTY_MAINTENANCE)
+    setEditingId('new:' + season)
+  }
+
+  function startEdit(rec) {
+    setForm({
+      inspection_date: rec.inspection_date || '',
+      colony_strength: rec.colony_strength || 'Orta',
+      honey_frames: rec.honey_frames || 0,
+      brood_frames: rec.brood_frames || 0,
+      feed_given: !!rec.feed_given,
+      feed_type: rec.feed_type || '',
+      notes: rec.notes || ''
+    })
+    setEditingId(rec.id)
+  }
+
+  async function saveRecord(season) {
+    if (editingId?.toString().startsWith('new:')) {
+      const { error } = await supabase.from('maintenance_records').insert({ ...form, hive_id: hiveId, season })
+      if (error) { toast.error(t('hive_tabs.error_add_failed')); return }
+      toast.success(t('hive_tabs.maintenance_added'))
+      // Hives tablosunu güncelle — bakım yapıldı = healthy
+      await supabase.from('hives').update({ color_status: 'healthy', updated_at: new Date().toISOString() }).eq('id', hiveId)
+    } else {
+      const { error } = await supabase.from('maintenance_records').update(form).eq('id', editingId)
+      if (error) { toast.error(t('common.error_save')); return }
+      toast.success(t('common.saved'))
+    }
+    setEditingId(null)
+    fetchRecords()
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm(t('hive_tabs.confirm_delete_maintenance'))) return
+    await supabase.from('maintenance_records').delete().eq('id', id)
+    setRecords(prev => prev.filter(r => r.id !== id))
+    toast.success(t('common.deleted'))
   }
 
   if (loading) return <Loader />
@@ -295,57 +433,76 @@ export function TabBakim({ hiveId }) {
               {isOpen && (
                 <div className="mt-2">
                   {seasonRecords.map(rec => (
-                    <div key={rec.id} className="bg-dark-100 border border-white/8 rounded-lg px-3 py-2.5 mb-2">
-                      <div className="flex justify-between">
-                        <span className="font-bold text-sm">{new Date(rec.inspection_date).toLocaleDateString('tr-TR')}</span>
-                        <span className="text-xs text-gray-400">{t('reports.col_colony')}: {rec.colony_strength}</span>
+                    editingId === rec.id ? (
+                      <MaintenanceForm key={rec.id} form={form} setForm={setForm} onSave={() => saveRecord(season)} onCancel={() => setEditingId(null)} t={t} />
+                    ) : (
+                      <div key={rec.id} className="bg-dark-100 border border-white/8 rounded-lg px-3 py-2.5 mb-2">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm">{new Date(rec.inspection_date).toLocaleDateString('tr-TR')}</span>
+                              <span className="text-xs text-gray-400">{t('reports.col_colony')}: {rec.colony_strength}</span>
+                            </div>
+                            {rec.notes && <p className="text-xs text-gray-400 mt-1">{rec.notes}</p>}
+                          </div>
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            <button className="w-7 h-7 bg-dark-50 border border-white/10 rounded-lg text-xs" onClick={() => startEdit(rec)}>✏️</button>
+                            <button className="w-7 h-7 bg-dark-50 border border-white/10 rounded-lg text-xs text-red-400 hover:bg-red-500/10 transition-colors" onClick={() => deleteRecord(rec.id)}>🗑</button>
+                          </div>
+                        </div>
                       </div>
-                      {rec.notes && <p className="text-xs text-gray-400 mt-1">{rec.notes}</p>}
-                    </div>
+                    )
                   ))}
-                  {adding === season ? (
-                    <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mt-2">
-                      <div className="flex flex-col gap-3 mb-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="field-label">{t('hive_tabs.inspection_date')}</label>
-                            <input type="date" value={form.inspection_date} onChange={e => setForm(p => ({ ...p, inspection_date: e.target.value }))} />
-                          </div>
-                          <div>
-                            <label className="field-label">{t('hive_tabs.colony_strength')}</label>
-                            <select value={form.colony_strength} onChange={e => setForm(p => ({ ...p, colony_strength: e.target.value }))}>
-                              <option>Güçlü</option><option>Orta</option><option>Zayıf</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="field-label">{t('reports.col_honey_frames')}</label>
-                            <input type="number" value={form.honey_frames} onChange={e => setForm(p => ({ ...p, honey_frames: parseInt(e.target.value) }))} />
-                          </div>
-                          <div>
-                            <label className="field-label">{t('hive_tabs.brood_frames')}</label>
-                            <input type="number" value={form.brood_frames} onChange={e => setForm(p => ({ ...p, brood_frames: parseInt(e.target.value) }))} />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="field-label">{t('hive_tabs.notes_label')}</label>
-                          <textarea rows={2} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="resize-none" />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="btn-gold" onClick={() => addRecord(season)}>{t('common.save')}</button>
-                        <button className="btn-ghost" onClick={() => setAdding(null)}>{t('common.cancel')}</button>
-                      </div>
-                    </div>
+                  {editingId === 'new:' + season ? (
+                    <MaintenanceForm form={form} setForm={setForm} onSave={() => saveRecord(season)} onCancel={() => setEditingId(null)} t={t} />
                   ) : (
-                    <button className="btn-gold mt-2" onClick={() => setAdding(season)}>+ {seasonLabel(season)} {t('hive_tabs.new_season_record_suffix')}</button>
+                    <button className="btn-gold mt-2" onClick={() => startAdd(season)}>+ {seasonLabel(season)} {t('hive_tabs.new_season_record_suffix')}</button>
                   )}
                 </div>
               )}
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+function MaintenanceForm({ form, setForm, onSave, onCancel, t }) {
+  const set = (f, v) => setForm(p => ({ ...p, [f]: v }))
+  return (
+    <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mt-2">
+      <div className="flex flex-col gap-3 mb-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">{t('hive_tabs.inspection_date')}</label>
+            <input type="date" value={form.inspection_date} onChange={e => set('inspection_date', e.target.value)} />
+          </div>
+          <div>
+            <label className="field-label">{t('hive_tabs.colony_strength')}</label>
+            <select value={form.colony_strength} onChange={e => set('colony_strength', e.target.value)}>
+              <option>Güçlü</option><option>Orta</option><option>Zayıf</option>
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">{t('reports.col_honey_frames')}</label>
+            <input type="number" onFocus={e => e.target.select()} value={form.honey_frames} onChange={e => set('honey_frames', parseInt(e.target.value))} />
+          </div>
+          <div>
+            <label className="field-label">{t('hive_tabs.brood_frames')}</label>
+            <input type="number" onFocus={e => e.target.select()} value={form.brood_frames} onChange={e => set('brood_frames', parseInt(e.target.value))} />
+          </div>
+        </div>
+        <div>
+          <label className="field-label">{t('hive_tabs.notes_label')}</label>
+          <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} className="resize-none" />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button className="btn-gold" onClick={onSave}>{t('common.save')}</button>
+        <button className="btn-ghost" onClick={onCancel}>{t('common.cancel')}</button>
       </div>
     </div>
   )

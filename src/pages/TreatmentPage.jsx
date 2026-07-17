@@ -5,12 +5,12 @@ import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-const DISEASE_TYPES = [
+export const DISEASE_TYPES = [
   'Varroa', 'Nosema', 'Amerikan Yavru Çürüklüğü', 'Avrupa Yavru Çürüklüğü',
   'Kireç Hastalığı', 'Taş Yavru', 'Güve', 'Küçük Kovan Böceği',
   'Arı Biti (Braula)', 'Genel Zayıflama', 'Bilinmeyen Belirti', 'Diğer'
 ]
-const DISEASE_TYPE_KEYS = {
+export const DISEASE_TYPE_KEYS = {
   'Varroa': 'treatment_page.disease_varroa', 'Nosema': 'treatment_page.disease_nosema',
   'Amerikan Yavru Çürüklüğü': 'treatment_page.disease_afb', 'Avrupa Yavru Çürüklüğü': 'treatment_page.disease_efb',
   'Kireç Hastalığı': 'treatment_page.disease_chalkbrood', 'Taş Yavru': 'treatment_page.disease_stonebrood',
@@ -18,13 +18,25 @@ const DISEASE_TYPE_KEYS = {
   'Arı Biti (Braula)': 'treatment_page.disease_bee_louse', 'Genel Zayıflama': 'treatment_page.disease_weakness',
   'Bilinmeyen Belirti': 'treatment_page.disease_unknown', 'Diğer': 'reports.honey_type_other',
 }
-const METHOD_KEYS = {
+export const METHOD_KEYS = {
   'Damlama': 'treatment_page.method_drip', 'Buharlaştırma': 'treatment_page.method_vapor',
   'Şerit / Fitil': 'treatment_page.method_strip', 'Toz': 'treatment_page.method_powder',
   'Sprey': 'treatment_page.method_spray', 'Diğer': 'reports.honey_type_other',
 }
-const SEVERITY_LEVELS = ['Hafif', 'Orta', 'Ağır']
-const APPLICATION_METHODS = ['Damlama', 'Buharlaştırma', 'Şerit / Fitil', 'Toz', 'Sprey', 'Diğer']
+export const SEVERITY_LEVELS = ['Hafif', 'Orta', 'Ağır']
+export const APPLICATION_METHODS = ['Damlama', 'Buharlaştırma', 'Şerit / Fitil', 'Toz', 'Sprey', 'Diğer']
+
+export function diseaseTypeLabel(value, t) {
+  if (!value) return t('reports.honey_type_other')
+  return DISEASE_TYPE_KEYS[value] ? t(DISEASE_TYPE_KEYS[value]) : value
+}
+
+export function severityOptLabel(s, t) {
+  if (s === 'Ağır') return t('reports.severity_severe')
+  if (s === 'Orta') return t('reports.severity_moderate')
+  if (s === 'Hafif') return t('reports.severity_mild')
+  return s
+}
 
 const EMPTY_FORM = {
   treatment_date: new Date().toISOString().slice(0, 10),
@@ -175,7 +187,7 @@ export default function TreatmentPage() {
                   const days = Math.ceil((new Date(r.repeat_date) - today) / 86400000)
                   return (
                     <div key={r.id}>
-                      {hiveNo} — {t(DISEASE_TYPE_KEYS[r.disease_type] || 'reports.honey_type_other')} ({r.product_name || t('treatment_page.product_unspecified')}) · {days === 0 ? t('treatment_page.today_exclaim') : `${days} ${t('treatment_page.days_later')}`}
+                      {hiveNo} — {diseaseTypeLabel(r.disease_type, t)} ({r.product_name || t('treatment_page.product_unspecified')}) · {days === 0 ? t('treatment_page.today_exclaim') : `${days} ${t('treatment_page.days_later')}`}
                     </div>
                   )
                 })}
@@ -335,7 +347,7 @@ export default function TreatmentPage() {
             <div className="flex gap-2 overflow-x-auto">
               <FilterChip label={t('treatment.all_diseases')} active={filterDisease === 'all'} onClick={() => setFilterDisease('all')} variant="red" />
               {diseaseTypes.map(d => (
-                <FilterChip key={d} label={t(DISEASE_TYPE_KEYS[d] || 'reports.honey_type_other')} active={filterDisease === d} onClick={() => setFilterDisease(d)} variant="red" />
+                <FilterChip key={d} label={diseaseTypeLabel(d, t)} active={filterDisease === d} onClick={() => setFilterDisease(d)} variant="red" />
               ))}
             </div>
           )}
@@ -367,13 +379,6 @@ export default function TreatmentPage() {
   )
 }
 
-function severityOptLabel(s, t) {
-  if (s === 'Ağır') return t('reports.severity_severe')
-  if (s === 'Orta') return t('reports.severity_moderate')
-  if (s === 'Hafif') return t('reports.severity_mild')
-  return s
-}
-
 function TreatmentRow({ record }) {
   const { t } = useTranslation()
   const severityColor = { Hafif: '#27ae60', Orta: '#e67e22', Ağır: '#e74c3c' }
@@ -399,7 +404,7 @@ function TreatmentRow({ record }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-sm">{t(DISEASE_TYPE_KEYS[record.disease_type] || 'reports.honey_type_other')}</span>
+          <span className="font-bold text-sm">{diseaseTypeLabel(record.disease_type, t)}</span>
           {record.severity && (
             <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold"
               style={{ background: `${color}20`, color }}>

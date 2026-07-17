@@ -507,7 +507,13 @@
     "brood_frames": "ბარტყის ჩარჩო",
     "notes_label": "შენიშვნები",
     "new_season_record_suffix": "ჩანაწერი",
-    "maintenance_added": "მოვლის ჩანაწერი დაემატა"
+    "maintenance_added": "მოვლის ჩანაწერი დაემატა",
+    "disease_unified_note": "ეს ჩანაწერები საერთოა ზედა \"მკურნალობა\" გვერდთან — აქედან დამატებული იქაც გამოჩნდება.",
+    "confirm_delete_treatment": "დარწმუნებული ხართ, რომ გსურთ ამ მკურნალობის ჩანაწერის წაშლა?",
+    "confirm_delete_maintenance": "დარწმუნებული ხართ, რომ გსურთ ამ მოვლის ჩანაწერის წაშლა?",
+    "dose_label": "დოზა",
+    "application_method": "გამოყენების მეთოდი",
+    "repeat_date": "გამეორების თარიღი"
   },
   "ai_advisor": {
     "title": "AI კონსულტანტი",
