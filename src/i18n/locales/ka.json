@@ -629,7 +629,11 @@
     "approve": "დადასტურება",
     "reject": "უარყოფა",
     "payment_approved": "გადახდა დადასტურდა, გეგმა გააქტიურდა",
-    "payment_rejected": "გადახდა უარყოფილია"
+    "payment_rejected": "გადახდა უარყოფილია",
+    "trial_extended": "საცდელი პერიოდი გაგრძელდა {{days}} დღით",
+    "trial_days_left": "საცდელი: დარჩენილია {{days}} დღე",
+    "trial_expired": "საცდელი დასრულდა / მხოლოდ-წაკითხვადი",
+    "days_short": "დღე"
   },
   "treatment_page": {
     "total_records": "სულ ჩანაწერი",

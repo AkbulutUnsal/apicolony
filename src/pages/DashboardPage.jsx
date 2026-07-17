@@ -8,7 +8,7 @@ import { useWorker } from '../hooks/useWorker'
 import Navbar from '../components/layout/Navbar'
 import WeatherWidget from '../components/ui/WeatherWidget'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { PLAN_TIERS } from '../lib/plans'
+import { PLAN_TIERS, getSubscriptionState } from '../lib/plans'
 
 const GOLD='#f5c518', GREEN='#27ae60', RED='#e74c3c', ORANGE='#e67e22', GRAY='#555'
 
@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [adminStats, setAdminStats] = useState(null)
   const [editingPhoneId, setEditingPhoneId] = useState(null)
   const [phoneInput, setPhoneInput] = useState('')
+  const [editingTrialId, setEditingTrialId] = useState(null)
   const [quickFinance, setQuickFinance] = useState({ income: 0, expense: 0, feedCount: 0 })
 
   const isAdmin = profile?.role === 'admin'
@@ -73,12 +74,15 @@ export default function DashboardPage() {
   }
 
   async function fetchAdminStats() {
-    const [profilesRes, sessionsRes, paymentsRes] = await Promise.all([
+    const [profilesRes, sessionsRes, paymentsRes, subsRes] = await Promise.all([
       supabase.from('profiles').select('id, full_name, role, avatar_color, email, phone'),
       supabase.from('worker_sessions').select('id').eq('is_active', true),
-      supabase.from('payment_requests').select('*, profiles(full_name, email)').eq('status', 'pending').order('requested_at', { ascending: true })
+      supabase.from('payment_requests').select('*, profiles(full_name, email)').eq('status', 'pending').order('requested_at', { ascending: true }),
+      supabase.from('subscriptions').select('*')
     ])
-    const profiles = profilesRes.data || []
+    const subsByUser = {}
+    ;(subsRes.data || []).forEach(s => { subsByUser[s.user_id] = s })
+    const profiles = (profilesRes.data || []).map(p => ({ ...p, sub: subsByUser[p.id] || null }))
     const activeSessions = sessionsRes.data || []
     setAdminStats({
       totalUsers: profiles.length,
@@ -123,6 +127,17 @@ export default function DashboardPage() {
     }))
     setEditingPhoneId(null)
     toast.success(t('dashboard_page.phone_saved'))
+  }
+
+  async function extendTrial(userId, days) {
+    const { data: current } = await supabase.from('subscriptions').select('trial_ends_at').eq('user_id', userId).single()
+    const base = current?.trial_ends_at && new Date(current.trial_ends_at) > new Date() ? new Date(current.trial_ends_at) : new Date()
+    const newDate = new Date(base.getTime() + days * 86400000)
+    const { error } = await supabase.from('subscriptions').update({ trial_ends_at: newDate.toISOString(), updated_at: new Date().toISOString() }).eq('user_id', userId)
+    if (error) { toast.error(t('common.error_save')); return }
+    setEditingTrialId(null)
+    toast.success(t('dashboard_page.trial_extended', { days }))
+    fetchAdminStats()
   }
 
   if (loading) return (
@@ -238,6 +253,38 @@ export default function DashboardPage() {
                         </>
                       )}
                     </div>
+                    {p.sub && (() => {
+                      const st = getSubscriptionState(p.sub)
+                      const statusText = st.inTrial
+                        ? t('dashboard_page.trial_days_left', { days: st.trialDaysLeft })
+                        : st.hasActivePaid
+                          ? `${t(PLAN_TIERS[p.sub.plan]?.nameKey || 'plans.tier_starter')} · ${new Date(p.sub.current_period_ends_at).toLocaleDateString('tr-TR')}`
+                          : t('dashboard_page.trial_expired')
+                      const statusColor = st.inTrial ? '#f5c518' : st.hasActivePaid ? '#27ae60' : '#e74c3c'
+                      return (
+                        <div className="text-[11px] mt-0.5">
+                          <span
+                            onClick={() => setEditingTrialId(editingTrialId === p.id ? null : p.id)}
+                            className="cursor-pointer hover:underline"
+                            style={{ color: statusColor }}
+                          >
+                            {statusText} ✎
+                          </span>
+                          {editingTrialId === p.id && (
+                            <div className="flex gap-1.5 mt-1.5">
+                              {[7, 14, 30].map(d => (
+                                <button key={d} onClick={() => extendTrial(p.id, d)}
+                                  className="text-[10px] px-2 py-1 rounded-lg font-bold"
+                                  style={{ background: '#f5c51822', color: '#f5c518' }}>
+                                  +{d} {t('dashboard_page.days_short')}
+                                </button>
+                              ))}
+                              <button onClick={() => setEditingTrialId(null)} className="text-[10px] px-2 py-1 text-gray-500">✕</button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0"
                     style={{ background: p.role === 'admin' ? '#e67e2222' : '#27ae6022', color: p.role === 'admin' ? '#e67e22' : '#27ae60' }}>

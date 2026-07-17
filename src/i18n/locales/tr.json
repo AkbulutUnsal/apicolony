@@ -629,7 +629,11 @@
     "approve": "Onayla",
     "reject": "Reddet",
     "payment_approved": "Ödeme onaylandı, plan aktif edildi",
-    "payment_rejected": "Ödeme reddedildi"
+    "payment_rejected": "Ödeme reddedildi",
+    "trial_extended": "Deneme süresi {{days}} gün uzatıldı",
+    "trial_days_left": "Deneme: {{days}} gün kaldı",
+    "trial_expired": "Deneme bitti / Salt okunur",
+    "days_short": "gün"
   },
   "treatment_page": {
     "total_records": "toplam kayıt",
