@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
+import Navbar from '../components/layout/Navbar'
 import TabGenel from '../components/forms/TabGenel'
 import { TabAnaAri, TabBallik, TabHastalik, TabBakim } from '../components/forms/TabAnaAri'
 import HiveQRCode from '../components/hive/HiveQRCode'
@@ -74,8 +75,11 @@ export default function HiveFormPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-dark-400 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin"/>
+    <div className="min-h-screen bg-dark-400 flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin"/>
+      </div>
     </div>
   )
 
@@ -83,6 +87,7 @@ export default function HiveFormPage() {
 
   return (
     <div className="min-h-screen bg-dark-400 flex flex-col">
+      <Navbar />
       <div className="bg-dark-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 flex-shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <button className="btn-ghost" onClick={() => navigate('/panel')}>{t('hive_form.back')}</button>

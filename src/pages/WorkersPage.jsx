@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
+import Navbar from '../components/layout/Navbar'
 
 const roleColor = { yardimci: '#27ae60', cirak: '#3498db', sofor: '#e67e22' }
 
@@ -47,8 +48,11 @@ export default function WorkersPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-dark-400 flex items-center justify-center">
-      <div className="w-7 h-7 border-2 border-gold border-t-transparent rounded-full animate-spin"/>
+    <div className="min-h-screen bg-dark-400 flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-7 h-7 border-2 border-gold border-t-transparent rounded-full animate-spin"/>
+      </div>
     </div>
   )
 
@@ -56,9 +60,9 @@ export default function WorkersPage() {
 
   return (
     <div className="min-h-screen bg-dark-400">
+      <Navbar />
       <div className="bg-dark-200 px-6 py-3 flex items-center justify-between"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <button className="btn-ghost" onClick={() => navigate('/panel')}>← {t('workers_page.back_to_panel')}</button>
         <h1 className="font-black text-lg">{t('workers_page.title')}</h1>
         <button className="btn-gold" onClick={() => navigate('/kim-calisiyor')}>+ {t('who_working.add_worker')}</button>
       </div>

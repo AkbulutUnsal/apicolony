@@ -127,12 +127,12 @@ export default function TabGenel({ hive, setHive }) {
           </div>
           <div>
             <label className="field-label">{t('hive_form_tab.frame_count')}</label>
-            <input type="number" min="0" max="20"
+            <input type="number" min="0" max="20" onFocus={e => e.target.select()}
               value={hive.frame_count || 10} onChange={e => set('frame_count', parseInt(e.target.value))} />
           </div>
           <div>
             <label className="field-label">{t('hive_form.honey_stock')}</label>
-            <input type="number" min="0" step="0.5"
+            <input type="number" min="0" step="0.5" onFocus={e => e.target.select()}
               value={hive.honey_stock_kg || 0} onChange={e => set('honey_stock_kg', parseFloat(e.target.value))} />
           </div>
           <div>
