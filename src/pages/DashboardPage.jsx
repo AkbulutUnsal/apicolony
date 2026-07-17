@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
+import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { useWorker } from '../hooks/useWorker'
 import Navbar from '../components/layout/Navbar'
@@ -21,6 +22,8 @@ export default function DashboardPage() {
   const [recentLogs, setRecentLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [adminStats, setAdminStats] = useState(null)
+  const [editingPhoneId, setEditingPhoneId] = useState(null)
+  const [phoneInput, setPhoneInput] = useState('')
   const [quickFinance, setQuickFinance] = useState({ income: 0, expense: 0, feedCount: 0 })
 
   const isAdmin = profile?.role === 'admin'
@@ -84,6 +87,17 @@ export default function DashboardPage() {
     })
   }
 
+  async function savePhone(userId) {
+    const { error } = await supabase.from('profiles').update({ phone: phoneInput.trim() || null }).eq('id', userId)
+    if (error) { toast.error(t('common.error_save') + ': ' + error.message); return }
+    setAdminStats(prev => ({
+      ...prev,
+      profiles: prev.profiles.map(p => p.id === userId ? { ...p, phone: phoneInput.trim() || null } : p)
+    }))
+    setEditingPhoneId(null)
+    toast.success(t('dashboard_page.phone_saved'))
+  }
+
   if (loading) return (
     <div className="min-h-screen bg-dark-400 flex flex-col"><Navbar />
       <div className="flex-1 flex items-center justify-center">
@@ -143,8 +157,34 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold truncate">{p.full_name}</div>
-                    <div className="text-[11px] text-gray-500 truncate">
-                      {p.email || '—'}{p.phone ? ` · ${p.phone}` : ''}
+                    <div className="text-[11px] text-gray-500 truncate flex items-center gap-1.5">
+                      <span>{p.email || '—'}</span>
+                      {editingPhoneId === p.id ? (
+                        <>
+                          <span>·</span>
+                          <input
+                            autoFocus
+                            value={phoneInput}
+                            onChange={e => setPhoneInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') savePhone(p.id); if (e.key === 'Escape') setEditingPhoneId(null) }}
+                            placeholder="+90 5xx xxx xx xx"
+                            className="text-[11px] px-1.5 py-0.5 rounded"
+                            style={{ background: '#1a1500', border: '1px solid rgba(245,197,24,0.3)', width: 130 }}
+                          />
+                          <button onClick={() => savePhone(p.id)} className="text-gold text-xs">✓</button>
+                          <button onClick={() => setEditingPhoneId(null)} className="text-gray-500 text-xs">✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <span>·</span>
+                          <span
+                            onClick={() => { setEditingPhoneId(p.id); setPhoneInput(p.phone || '') }}
+                            className="cursor-pointer hover:text-gold transition-colors"
+                          >
+                            {p.phone || t('dashboard_page.add_phone')}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0"

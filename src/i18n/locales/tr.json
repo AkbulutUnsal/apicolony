@@ -612,7 +612,9 @@
     "just_now": "az önce",
     "min_short": "dk",
     "hour_short": "sa",
-    "day_short": "g"
+    "day_short": "g",
+    "phone_saved": "Telefon kaydedildi",
+    "add_phone": "+ Telefon ekle"
   },
   "treatment_page": {
     "total_records": "toplam kayıt",

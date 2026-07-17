@@ -612,7 +612,9 @@
     "just_now": "ახლახან",
     "min_short": "წთ",
     "hour_short": "სთ",
-    "day_short": "დღ"
+    "day_short": "დღ",
+    "phone_saved": "ტელეფონი შენახულია",
+    "add_phone": "+ ტელეფონის დამატება"
   },
   "treatment_page": {
     "total_records": "სულ ჩანაწერი",
