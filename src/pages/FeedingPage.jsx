@@ -5,13 +5,18 @@ import Navbar from '../components/layout/Navbar'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-const FEED_TYPES = ['Şeker Şurubu', 'Kandı / Şeker Hamuru', 'Polen Keki', 'Arı Ekmeği', 'Hazır Kek', 'Diğer']
-const FEED_TYPE_KEYS = {
+export const FEED_TYPES = ['Şeker Şurubu', 'Kandı / Şeker Hamuru', 'Polen Keki', 'Arı Ekmeği', 'Hazır Kek', 'Diğer']
+export const FEED_TYPE_KEYS = {
   'Şeker Şurubu': 'feeding_page.type_sugar_syrup', 'Kandı / Şeker Hamuru': 'feeding_page.type_candy',
   'Polen Keki': 'feeding_page.type_pollen_patty', 'Arı Ekmeği': 'feeding_page.type_bee_bread',
   'Hazır Kek': 'feeding_page.type_ready_cake', 'Diğer': 'reports.honey_type_other',
 }
-const UNITS = ['kg', 'litre', 'adet']
+export const UNITS = ['kg', 'litre', 'adet']
+
+export function feedTypeLabel(value, t) {
+  if (!value) return t('reports.honey_type_other')
+  return FEED_TYPE_KEYS[value] ? t(FEED_TYPE_KEYS[value]) : value
+}
 
 const EMPTY_FORM = {
   feed_date: new Date().toISOString().slice(0, 10),
@@ -301,7 +306,7 @@ function FeedingRow({ record }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-sm">{t(FEED_TYPE_KEYS[record.feed_type] || 'reports.honey_type_other')}</span>
+          <span className="font-bold text-sm">{feedTypeLabel(record.feed_type, t)}</span>
           {record.hives?.hive_no && (
             <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold"
               style={{ background: 'rgba(245,197,24,0.15)', color: '#f5c518' }}>

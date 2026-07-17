@@ -513,7 +513,11 @@
     "confirm_delete_maintenance": "Bu bakım kaydını silmek istediğinize emin misiniz?",
     "dose_label": "Doz",
     "application_method": "Uygulama Yöntemi",
-    "repeat_date": "Tekrar Tarihi"
+    "repeat_date": "Tekrar Tarihi",
+    "feeding_unified_note": "Bu kayıtlar üstteki \"Besleme\" sayfasıyla ortaktır — buradan eklediğin de orada görünür.",
+    "feeding_added": "Besleme kaydı eklendi",
+    "confirm_delete_feeding": "Bu besleme kaydını silmek istediğinize emin misiniz?",
+    "new_feeding_btn": "Yeni Besleme Ekle"
   },
   "ai_advisor": {
     "title": "AI Danışman",

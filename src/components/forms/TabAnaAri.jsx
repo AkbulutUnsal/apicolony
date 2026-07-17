@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 import { DISEASE_TYPES, DISEASE_TYPE_KEYS, METHOD_KEYS, SEVERITY_LEVELS, APPLICATION_METHODS, severityOptLabel, diseaseTypeLabel } from '../../pages/TreatmentPage'
+import { FEED_TYPES, FEED_TYPE_KEYS, UNITS, feedTypeLabel } from '../../pages/FeedingPage'
 
 // ── ANA ARI ─────────────────────────────────────────────
 export function TabAnaAri({ hiveId }) {
@@ -346,15 +347,22 @@ function TreatmentForm({ form, setForm, onSave, onCancel, t }) {
 }
 
 // ── BAKIM ─────────────────────────────────────────────
-const EMPTY_MAINTENANCE = { inspection_date: new Date().toISOString().slice(0,10), colony_strength: 'Orta', honey_frames: 0, brood_frames: 0, feed_given: false, feed_type: '', notes: '' }
+const EMPTY_MAINTENANCE = { inspection_date: new Date().toISOString().slice(0,10), colony_strength: 'Orta', honey_frames: 0, brood_frames: 0, notes: '' }
+const EMPTY_FEEDING = { feed_date: new Date().toISOString().slice(0,10), feed_type: 'Şeker Şurubu', amount: '', unit: 'kg', cost: '', notes: '' }
 
 export function TabBakim({ hiveId }) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeSeason, setActiveSeason] = useState(null)
   const [editingId, setEditingId] = useState(null) // null = kapalı, 'new' = yeni ekleme, id = düzenleme
   const [form, setForm] = useState(EMPTY_MAINTENANCE)
+
+  // Besleme (feeding_records ile birleşik — üstteki "Besleme" menüsüyle aynı tablo)
+  const [feedings, setFeedings] = useState([])
+  const [editingFeedId, setEditingFeedId] = useState(null)
+  const [feedForm, setFeedForm] = useState(EMPTY_FEEDING)
 
   const SEASONS = ['İlkbahar', 'Yaz', 'Sonbahar', 'Kışlatma']
   const seasonLabel = (s) => ({
@@ -364,12 +372,17 @@ export function TabBakim({ hiveId }) {
     'Kışlatma': t('hive_tabs.season_wintering'),
   }[s] || s)
 
-  useEffect(() => { fetchRecords() }, [hiveId])
+  useEffect(() => { fetchRecords(); fetchFeedings() }, [hiveId])
 
   async function fetchRecords() {
     const { data } = await supabase.from('maintenance_records').select('*').eq('hive_id', hiveId).order('inspection_date', { ascending: false })
     setRecords(data || [])
     setLoading(false)
+  }
+
+  async function fetchFeedings() {
+    const { data } = await supabase.from('feeding_records').select('*').eq('hive_id', hiveId).order('feed_date', { ascending: false })
+    setFeedings(data || [])
   }
 
   function startAdd(season) {
@@ -383,8 +396,6 @@ export function TabBakim({ hiveId }) {
       colony_strength: rec.colony_strength || 'Orta',
       honey_frames: rec.honey_frames || 0,
       brood_frames: rec.brood_frames || 0,
-      feed_given: !!rec.feed_given,
-      feed_type: rec.feed_type || '',
       notes: rec.notes || ''
     })
     setEditingId(rec.id)
@@ -410,6 +421,55 @@ export function TabBakim({ hiveId }) {
     if (!confirm(t('hive_tabs.confirm_delete_maintenance'))) return
     await supabase.from('maintenance_records').delete().eq('id', id)
     setRecords(prev => prev.filter(r => r.id !== id))
+    toast.success(t('common.deleted'))
+  }
+
+  function startFeedAdd() {
+    setFeedForm(EMPTY_FEEDING)
+    setEditingFeedId('new')
+  }
+
+  function startFeedEdit(rec) {
+    setFeedForm({
+      feed_date: rec.feed_date || '',
+      feed_type: rec.feed_type || 'Şeker Şurubu',
+      amount: rec.amount ?? '',
+      unit: rec.unit || 'kg',
+      cost: rec.cost ?? '',
+      notes: rec.notes || ''
+    })
+    setEditingFeedId(rec.id)
+  }
+
+  async function saveFeeding() {
+    if (!feedForm.amount || parseFloat(feedForm.amount) <= 0) { toast.error(t('feeding.error_amount')); return }
+    const payload = {
+      hive_id: hiveId,
+      user_id: user.id,
+      feed_date: feedForm.feed_date,
+      feed_type: feedForm.feed_type,
+      amount: parseFloat(feedForm.amount),
+      unit: feedForm.unit,
+      cost: feedForm.cost ? parseFloat(feedForm.cost) : null,
+      notes: feedForm.notes.trim() || null
+    }
+    if (editingFeedId === 'new') {
+      const { error } = await supabase.from('feeding_records').insert(payload)
+      if (error) { toast.error(t('hive_tabs.error_add_failed')); return }
+      toast.success(t('hive_tabs.feeding_added'))
+    } else {
+      const { error } = await supabase.from('feeding_records').update(payload).eq('id', editingFeedId)
+      if (error) { toast.error(t('common.error_save')); return }
+      toast.success(t('common.saved'))
+    }
+    setEditingFeedId(null)
+    fetchFeedings()
+  }
+
+  async function deleteFeeding(id) {
+    if (!confirm(t('hive_tabs.confirm_delete_feeding'))) return
+    await supabase.from('feeding_records').delete().eq('id', id)
+    setFeedings(prev => prev.filter(f => f.id !== id))
     toast.success(t('common.deleted'))
   }
 
@@ -463,6 +523,86 @@ export function TabBakim({ hiveId }) {
             </div>
           )
         })}
+      </div>
+
+      <div className="card mt-4">
+        <h2 className="text-lg font-black mb-1">{t('feeding.title')}</h2>
+        <p className="text-xs text-gray-500 mb-5">🫙 {t('hive_tabs.feeding_unified_note')}</p>
+
+        {feedings.length === 0 && editingFeedId === null && (
+          <p className="text-center text-gray-500 py-6 text-sm">{t('hive_tabs.no_records_yet')}</p>
+        )}
+
+        {feedings.map(rec => (
+          editingFeedId === rec.id ? (
+            <FeedingForm key={rec.id} form={feedForm} setForm={setFeedForm} onSave={saveFeeding} onCancel={() => setEditingFeedId(null)} t={t} />
+          ) : (
+            <div key={rec.id} className="bg-dark-100 border border-white/8 rounded-xl px-4 py-3.5 mb-3">
+              <div className="flex justify-between items-start gap-2">
+                <div className="min-w-0">
+                  <span className="font-bold text-sm">{feedTypeLabel(rec.feed_type, t)}</span>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {new Date(rec.feed_date).toLocaleDateString('tr-TR')} · {rec.amount} {rec.unit}
+                    {rec.cost ? ` · ${rec.cost} ₺` : ''}
+                  </div>
+                  {rec.notes && <p className="text-xs text-gray-500 mt-1">{rec.notes}</p>}
+                </div>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button className="w-7 h-7 bg-dark-50 border border-white/10 rounded-lg text-xs" onClick={() => startFeedEdit(rec)}>✏️</button>
+                  <button className="w-7 h-7 bg-dark-50 border border-white/10 rounded-lg text-xs text-red-400 hover:bg-red-500/10 transition-colors" onClick={() => deleteFeeding(rec.id)}>🗑</button>
+                </div>
+              </div>
+            </div>
+          )
+        ))}
+
+        {editingFeedId === 'new' ? (
+          <FeedingForm form={feedForm} setForm={setFeedForm} onSave={saveFeeding} onCancel={() => setEditingFeedId(null)} t={t} />
+        ) : (
+          <button className="btn-gold mt-1" onClick={startFeedAdd}>+ {t('hive_tabs.new_feeding_btn')}</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function FeedingForm({ form, setForm, onSave, onCancel, t }) {
+  const set = (f, v) => setForm(p => ({ ...p, [f]: v }))
+  return (
+    <div className="bg-dark-100 border border-white/8 rounded-xl p-4 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label className="field-label">{t('common.date')}</label>
+          <input type="date" value={form.feed_date} onChange={e => set('feed_date', e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">{t('feeding.feed_type')}</label>
+          <select value={form.feed_type} onChange={e => set('feed_type', e.target.value)}>
+            {FEED_TYPES.map(f => <option key={f} value={f}>{t(FEED_TYPE_KEYS[f])}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">{t('common.amount')}</label>
+          <input type="number" onFocus={e => e.target.select()} value={form.amount} onChange={e => set('amount', e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">{t('feeding.unit')}</label>
+          <select value={form.unit} onChange={e => set('unit', e.target.value)}>
+            {UNITS.map(u => <option key={u} value={u}>{t('feeding_page.unit_' + u)}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">{t('reports.col_cost')}</label>
+          <input type="number" onFocus={e => e.target.select()} value={form.cost} onChange={e => set('cost', e.target.value)} />
+        </div>
+      </div>
+      <div className="mb-3">
+        <label className="field-label">{t('common.notes')}</label>
+        <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} className="resize-none" />
+      </div>
+      <div className="flex gap-2">
+        <button className="btn-gold" onClick={onSave}>{t('common.save')}</button>
+        <button className="btn-ghost" onClick={onCancel}>{t('common.cancel')}</button>
       </div>
     </div>
   )
