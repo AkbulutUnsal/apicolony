@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useSubscription } from '../hooks/useSubscription'
 import Navbar from '../components/layout/Navbar'
 import HiveCard from '../components/hive/HiveCard'
 import toast from 'react-hot-toast'
 
 export default function PanelPage() {
+  const { t } = useTranslation()
   const { user } = useAuth()
+  const { isReadOnly, hiveLimit } = useSubscription() || {}
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [hives, setHives] = useState([])
@@ -25,7 +29,7 @@ export default function PanelPage() {
       supabase.from('apiaries').select('id, name').eq('user_id', user.id).order('name')
     ])
     if (hivRes.error) {
-      toast.error('Kovanlar yüklenemedi')
+      toast.error(t('panel_page.hives_load_error'))
       setApiaries(apRes.data || [])
       setLoading(false)
       return
@@ -41,7 +45,7 @@ export default function PanelPage() {
         .select('hive_id')
         .in('hive_id', hiveIds)
       if (supersError) {
-        toast.error('Ballık bilgisi yüklenemedi')
+        toast.error(t('panel_page.supers_load_error'))
       } else {
         (supersData || []).forEach(s => {
           superCounts[s.hive_id] = (superCounts[s.hive_id] || 0) + 1
@@ -57,6 +61,16 @@ export default function PanelPage() {
 
   async function addHive() {
     if (!user || adding) return
+    if (isReadOnly) {
+      toast.error(t('panel_page.readonly_block'))
+      navigate('/abonelik')
+      return
+    }
+    if (hiveLimit != null && hives.length >= hiveLimit) {
+      toast.error(t('panel_page.hive_limit_reached', { limit: hiveLimit }))
+      navigate('/abonelik')
+      return
+    }
     setAdding(true)
     try {
       const { data: existing } = await supabase
@@ -78,8 +92,8 @@ export default function PanelPage() {
         status: 'aktif',
         color_status: 'danger'
       }).select().single()
-      if (error) toast.error('Kovan eklenemedi')
-      else { setHives(prev => [...prev, data]); toast.success(`${hiveNo} kovanı eklendi`) }
+      if (error) toast.error(t('panel_page.hive_add_error'))
+      else { setHives(prev => [...prev, data]); toast.success(t('panel_page.hive_added', { hive: hiveNo })) }
     } finally {
       setAdding(false)
     }
@@ -89,11 +103,17 @@ export default function PanelPage() {
     <div className="min-h-screen bg-dark-400 flex flex-col">
       <Navbar onAddHive={addHive} addingHive={adding} />
       <main className="flex-1 p-6">
-        <h1 className="text-center text-xl font-black mb-6 tracking-wide">Kovan Paneli</h1>
+        <h1 className="text-center text-xl font-black mb-1 tracking-wide">{t('panel_page.title')}</h1>
+        {hiveLimit != null && (
+          <p className="text-center text-xs text-gray-500 mb-6">
+            {t('panel_page.hive_usage', { count: hives.length, limit: hiveLimit })}
+          </p>
+        )}
+        {hiveLimit == null && <div className="mb-6" />}
         {/* Arılık filtresi */}
         {apiaries.length > 0 && (
           <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-            <FilterChip label="Tümü" active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
+            <FilterChip label={t('common.all')} active={filterApiary === 'all'} onClick={() => setFilterApiary('all')} />
             {apiaries.map(a => (
               <FilterChip key={a.id} label={a.name} active={filterApiary === a.id} onClick={() => setFilterApiary(a.id)} />
             ))}
@@ -108,10 +128,10 @@ export default function PanelPage() {
           const filtered = filterApiary === 'all' ? hives : hives.filter(h => h.apiary_id === filterApiary)
           return filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-              <p className="text-lg mb-4">{hives.length === 0 ? 'Henüz kovan yok.' : 'Bu arılıkta kovan yok.'}</p>
+              <p className="text-lg mb-4">{hives.length === 0 ? t('panel_page.no_hives_yet') : t('panel_page.no_hives_in_apiary')}</p>
               {hives.length === 0 && (
                 <button className="btn-gold" onClick={addHive} disabled={adding}>
-                  + İlk Kovanı Ekle
+                  + {t('panel_page.add_first_hive')}
                 </button>
               )}
             </div>

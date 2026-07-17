@@ -8,6 +8,7 @@ import { useWorker } from '../hooks/useWorker'
 import Navbar from '../components/layout/Navbar'
 import WeatherWidget from '../components/ui/WeatherWidget'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { PLAN_TIERS } from '../lib/plans'
 
 const GOLD='#f5c518', GREEN='#27ae60', RED='#e74c3c', ORANGE='#e67e22', GRAY='#555'
 
@@ -72,9 +73,10 @@ export default function DashboardPage() {
   }
 
   async function fetchAdminStats() {
-    const [profilesRes, sessionsRes] = await Promise.all([
+    const [profilesRes, sessionsRes, paymentsRes] = await Promise.all([
       supabase.from('profiles').select('id, full_name, role, avatar_color, email, phone'),
-      supabase.from('worker_sessions').select('id').eq('is_active', true)
+      supabase.from('worker_sessions').select('id').eq('is_active', true),
+      supabase.from('payment_requests').select('*, profiles(full_name, email)').eq('status', 'pending').order('requested_at', { ascending: true })
     ])
     const profiles = profilesRes.data || []
     const activeSessions = sessionsRes.data || []
@@ -83,8 +85,33 @@ export default function DashboardPage() {
       adminCount: profiles.filter(p => p.role === 'admin').length,
       ariciCount: profiles.filter(p => p.role !== 'admin').length,
       onlineSessions: activeSessions.length,
-      profiles
+      profiles,
+      pendingPayments: paymentsRes.data || []
     })
+  }
+
+  async function approvePayment(req) {
+    const tier = PLAN_TIERS[req.plan_requested]
+    const { error: e1 } = await supabase.from('payment_requests')
+      .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user.id }).eq('id', req.id)
+    const { error: e2 } = await supabase.from('subscriptions')
+      .update({
+        plan: req.plan_requested,
+        hive_limit: tier.hiveLimit,
+        current_period_ends_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+        updated_at: new Date().toISOString()
+      }).eq('user_id', req.user_id)
+    if (e1 || e2) { toast.error(t('common.error_save')); return }
+    toast.success(t('dashboard_page.payment_approved'))
+    fetchAdminStats()
+  }
+
+  async function rejectPayment(req) {
+    const { error } = await supabase.from('payment_requests')
+      .update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: user.id }).eq('id', req.id)
+    if (error) { toast.error(t('common.error_save')); return }
+    toast.success(t('dashboard_page.payment_rejected'))
+    fetchAdminStats()
   }
 
   async function savePhone(userId) {
@@ -147,6 +174,31 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+            {adminStats.pendingPayments.length > 0 && (
+              <div className="mb-4">
+                <div className="text-xs text-gray-400 mb-2 font-bold">
+                  💳 {t('dashboard_page.pending_payments')} ({adminStats.pendingPayments.length})
+                </div>
+                <div className="space-y-1.5">
+                  {adminStats.pendingPayments.map(req => (
+                    <div key={req.id} className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ background: '#2a2200' }}>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold truncate">{req.profiles?.full_name || req.profiles?.email}</div>
+                        <div className="text-[11px] text-gray-500 truncate">
+                          {t(PLAN_TIERS[req.plan_requested]?.nameKey || 'plans.tier_starter')} — {req.amount} {req.currency}
+                          {req.reference_note ? ` · ${req.reference_note}` : ''}
+                        </div>
+                      </div>
+                      <button onClick={() => approvePayment(req)} className="text-[11px] px-2 py-1 rounded-lg font-bold flex-shrink-0"
+                        style={{ background: '#27ae6022', color: '#27ae60' }}>✓ {t('dashboard_page.approve')}</button>
+                      <button onClick={() => rejectPayment(req)} className="text-[11px] px-2 py-1 rounded-lg font-bold flex-shrink-0"
+                        style={{ background: '#e74c3c22', color: '#e74c3c' }}>✕ {t('dashboard_page.reject')}</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="text-xs text-gray-400 mb-2 font-bold">{t('dashboard_page.registered_users')}</div>
             <div className="space-y-1.5">
               {adminStats.profiles.map(p => (

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useSubscription } from '../hooks/useSubscription'
 import toast from 'react-hot-toast'
 import Navbar from '../components/layout/Navbar'
 import TabGenel from '../components/forms/TabGenel'
@@ -16,6 +17,7 @@ export default function HiveFormPage() {
   const { t } = useTranslation()
   const { id } = useParams()
   const { user } = useAuth()
+  const { isReadOnly } = useSubscription() || {}
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState(0)
   const [hive, setHive] = useState(null)
@@ -31,6 +33,7 @@ export default function HiveFormPage() {
   }
 
   async function saveHive() {
+    if (isReadOnly) { toast.error(t('panel_page.readonly_block')); navigate('/abonelik'); return }
     setSaving(true)
 
     // Son bakım kaydına bak
@@ -93,7 +96,7 @@ export default function HiveFormPage() {
         <button className="btn-ghost" onClick={() => navigate('/panel')}>{t('hive_form.back')}</button>
         <h1 className="text-gold font-black text-base">{hive.hive_no} {t('hive_form.title')}</h1>
         <div className="flex gap-2.5">
-          <button className="btn-gold" onClick={saveHive} disabled={saving}>
+          <button className="btn-gold" onClick={saveHive} disabled={saving || isReadOnly}>
             💾 {saving ? t('hive_form_page.saving_short') : t('hive_form_page.save_short')}
           </button>
           <button className="btn-ghost" onClick={archiveHive}>📋 {t('hive_form_page.archive_short')}</button>

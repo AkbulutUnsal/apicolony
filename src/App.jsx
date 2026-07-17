@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { WorkerProvider } from './hooks/useWorker'
 import { NotificationProvider } from './hooks/useNotifications'
+import { SubscriptionProvider } from './hooks/useSubscription'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import WhoIsWorkingPage from './pages/WhoIsWorkingPage'
@@ -20,6 +21,7 @@ import TreatmentPage from './pages/TreatmentPage'
 import BatchPage from './pages/BatchPage'
 import PublicBatchPage from './pages/PublicBatchPage'
 import FinancePage from './pages/FinancePage'
+import BillingPage from './pages/BillingPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -34,6 +36,7 @@ function PrivateRoute({ children }) {
 export default function App() {
   return (
     <AuthProvider>
+      <SubscriptionProvider>
       <WorkerProvider>
         <NotificationProvider>
           <BrowserRouter>
@@ -59,11 +62,13 @@ export default function App() {
             <Route path="/finans" element={<PrivateRoute><FinancePage /></PrivateRoute>} />
             <Route path="/ai" element={<PrivateRoute><AIAdvisorPage /></PrivateRoute>} />
             <Route path="/calisanlar" element={<PrivateRoute><WorkersPage /></PrivateRoute>} />
+            <Route path="/abonelik" element={<PrivateRoute><BillingPage /></PrivateRoute>} />
               <Route path="*" element={<Navigate to="/kim-calisiyor" replace />} />
             </Routes>
           </BrowserRouter>
         </NotificationProvider>
       </WorkerProvider>
+      </SubscriptionProvider>
     </AuthProvider>
   )
 }

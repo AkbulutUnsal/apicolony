@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useWorker } from '../../hooks/useWorker'
+import { useSubscription } from '../../hooks/useSubscription'
 import HexLogo from '../ui/HexLogo'
 import NotificationBell from '../ui/NotificationBell'
 
@@ -17,6 +18,7 @@ export default function Navbar({ onAddHive, addingHive }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { t, i18n } = useTranslation()
+  const { inTrial, isReadOnly, trialDaysLeft } = useSubscription() || {}
   const [open, setOpen] = useState(false)
 
   const displayName = activeWorker?.full_name || profile?.full_name || t('navbar.default_user')
@@ -145,6 +147,10 @@ export default function Navbar({ onAddHive, addingHive }) {
                   </div>
 
                   <div className="py-1">
+                    <button onClick={() => { navigate('/abonelik'); setOpen(false) }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white flex items-center gap-2 transition-colors">
+                      💳 {t('navbar.billing')}
+                    </button>
                     <button onClick={() => { navigate('/kim-calisiyor'); setOpen(false) }}
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-50 hover:text-white flex items-center gap-2 transition-colors">
                       🔄 {t('navbar.switch_worker')}
@@ -160,6 +166,19 @@ export default function Navbar({ onAddHive, addingHive }) {
           </div>
         </div>
       </div>
+
+      {(isReadOnly || (inTrial && trialDaysLeft <= 5)) && (
+        <div
+          onClick={() => navigate('/abonelik')}
+          className="px-4 py-1.5 text-xs font-bold text-center cursor-pointer transition-colors"
+          style={isReadOnly
+            ? { background: 'rgba(231,76,60,0.15)', color: '#e74c3c' }
+            : { background: 'rgba(245,197,24,0.15)', color: '#f5c518' }}>
+          {isReadOnly
+            ? `🔒 ${t('navbar.trial_expired_banner')} →`
+            : `⏳ ${t('navbar.trial_ending_banner', { days: trialDaysLeft })} →`}
+        </div>
+      )}
     </nav>
   )
 }

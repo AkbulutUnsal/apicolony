@@ -624,7 +624,12 @@
     "hour_short": "sa",
     "day_short": "g",
     "phone_saved": "Telefon kaydedildi",
-    "add_phone": "+ Telefon ekle"
+    "add_phone": "+ Telefon ekle",
+    "pending_payments": "Bekleyen Ödemeler",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "payment_approved": "Ödeme onaylandı, plan aktif edildi",
+    "payment_rejected": "Ödeme reddedildi"
   },
   "treatment_page": {
     "total_records": "toplam kayıt",
@@ -925,7 +930,10 @@
     "title": "Kovan Paneli",
     "no_hives_yet": "Henüz kovan yok.",
     "no_hives_in_apiary": "Bu arılıkta kovan yok.",
-    "add_first_hive": "İlk Kovanı Ekle"
+    "add_first_hive": "İlk Kovanı Ekle",
+    "readonly_block": "Aboneliğin sona erdi, yeni kayıt eklenemiyor",
+    "hive_limit_reached": "Plan limitine ulaştın ({{limit}} kovan). Yükseltmek için plan sayfasına git",
+    "hive_usage": "{{count}} / {{limit}} kovan kullanılıyor"
   },
   "hive_qr": {
     "qr_error": "QR oluşturulamadı",
@@ -945,7 +953,10 @@
     "active": "Aktif",
     "language": "Dil / Language",
     "switch_worker": "Çalışan Değiştir",
-    "sign_out": "Çıkış Yap"
+    "sign_out": "Çıkış Yap",
+    "trial_expired_banner": "Deneme süren doldu, salt okunur moddasın. Devam etmek için ödeme yap",
+    "trial_ending_banner": "Deneme sürenin bitmesine {{days}} gün kaldı",
+    "billing": "Plan & Ödeme"
   },
   "nfc": {
     "not_supported": "Bu tarayıcı NFC desteklemiyor. Android Chrome gerekli.",
@@ -961,5 +972,43 @@
     "mark_all_read": "Tümünü okundu işaretle",
     "no_notifications": "Hiç bildirim yok",
     "footer_count": "{{count}} bildirim · Bakım yapıldıkça otomatik temizlenir"
+  },
+  "billing": {
+    "title": "Plan & Ödeme",
+    "subtitle": "Aboneliğini yönet, plan seç, ödeme bildir.",
+    "status_readonly_title": "Aboneliğin sona erdi",
+    "status_readonly_desc": "Verilerine hâlâ erişebilirsin ama yeni kayıt ekleyemez/düzenleyemezsin. Devam etmek için bir plan seç.",
+    "status_trial_title": "Deneme sürümü — {{days}} gün kaldı",
+    "status_trial_desc": "Deneme süresince tüm özellikler sınırsız açık. Süre dolmadan bir plan seçmen gerekiyor.",
+    "status_active_title": "{{plan}} planı aktif",
+    "status_active_desc": "Dönem bitiş tarihi: {{date}}",
+    "choose_plan": "Plan Seç",
+    "contact_us": "Bize Ulaş",
+    "per_month": "ay",
+    "up_to_hives": "{{count}} kovana kadar",
+    "unlimited_hives": "Sınırsız kovan",
+    "current_plan": "Mevcut Planın",
+    "select_plan": "Bu Planı Seç",
+    "pay_title": "{{plan}} için Ödeme",
+    "pay_desc": "Aşağıdaki hesaba ödemeni yaptıktan sonra bildirim gönder, en kısa sürede onaylanacak.",
+    "bank_name": "Banka",
+    "account_holder": "Hesap Sahibi",
+    "amount": "Tutar",
+    "reference_label": "Dekont / Açıklama Notu (opsiyonel)",
+    "reference_placeholder": "örn. Dekont no: 12345, gönderen isim...",
+    "submit_notice": "Ödeme Bildir",
+    "history_title": "Ödeme Geçmişi",
+    "no_history": "Henüz ödeme bildirimi yok.",
+    "submit_error": "Gönderilemedi",
+    "submit_success": "Ödeme bildirimi gönderildi, onay bekleniyor.",
+    "status_pending": "⏳ Onay Bekliyor",
+    "status_approved": "✅ Onaylandı",
+    "status_rejected": "✕ Reddedildi"
+  },
+  "plans": {
+    "tier_starter": "Başlangıç",
+    "tier_standard": "Standart",
+    "tier_professional": "Profesyonel",
+    "tier_enterprise": "Kurumsal"
   }
 }
