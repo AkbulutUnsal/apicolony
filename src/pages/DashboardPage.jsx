@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
   async function fetchAdminStats() {
     const [profilesRes, sessionsRes] = await Promise.all([
-      supabase.from('profiles').select('id, full_name, role, avatar_color'),
+      supabase.from('profiles').select('id, full_name, role, avatar_color, email, phone'),
       supabase.from('worker_sessions').select('id').eq('is_active', true)
     ])
     const profiles = profilesRes.data || []
@@ -141,8 +141,13 @@ export default function DashboardPage() {
                     style={{ background: p.avatar_color || '#f5c518', color: '#1a1200' }}>
                     {p.full_name?.charAt(0) || '?'}
                   </div>
-                  <div className="flex-1 text-sm font-bold">{p.full_name}</div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">{p.full_name}</div>
+                    <div className="text-[11px] text-gray-500 truncate">
+                      {p.email || '—'}{p.phone ? ` · ${p.phone}` : ''}
+                    </div>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0"
                     style={{ background: p.role === 'admin' ? '#e67e2222' : '#27ae6022', color: p.role === 'admin' ? '#e67e22' : '#27ae60' }}>
                     {p.role === 'admin' ? '👑 ' + t('dashboard_page.admin_label') : '🐝 ' + t('who_working.beekeeper')}
                   </span>
